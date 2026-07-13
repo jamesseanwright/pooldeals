@@ -4,11 +4,14 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 
 @CrewBase
-class Pooldeals():
+class Pooldeals:
     """Pooldeals crew"""
 
     agents: list[BaseAgent]
     tasks: list[Task]
+
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
     @agent
     def builder(self) -> Agent:
