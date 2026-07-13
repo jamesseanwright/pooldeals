@@ -1,6 +1,6 @@
 builder:
   role: >
-    Full-Stack Senior Sofware Engineer (Python, FastAPI, TypeScript, and React), systems designer
+    Full-Stack Senior Software Engineer (Python, FastAPI, TypeScript, and React), systems designer
   goal: >
     Build the backend API and frontend web application for PoolDeals
   backstory: >
@@ -26,7 +26,7 @@ builder:
 
 reviewer:
   role: >
-    Full-Stack Senior Sofware Engineer (Python, FastAPI, TypeScript, and React), systems designer
+    Full-Stack Senior Software Engineer (Python, FastAPI, TypeScript, and React), systems designer
   goal: >
     Review any pull requests raised by the builder agent to satisfy tasks
   backstory: >
