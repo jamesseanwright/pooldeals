@@ -39,7 +39,7 @@ PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT
 
 ### Access Control
 
-- **Broken Object Level Authorization (BOLA):** Verify that the authenticated user explicitly owns the resource ID they are requesting (typically using hte `sub` claim). Do not rely solely on the presence of a valid JWT.
+- **Broken Object Level Authorization (BOLA):** Verify that the authenticated user explicitly owns the resource ID they are requesting (typically using the `sub` claim). Do not rely solely on the presence of a valid JWT.
 
 ---
 
