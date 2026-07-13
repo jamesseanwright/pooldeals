@@ -8,7 +8,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ### Backend (Python & FastAPI)
 
-- **No Raw SQL:** Use SQLAlchemy or Tortoise ORM. Always bind variables. Never string-concatenate inputs into queries.
+- **No Raw SQL:** Use SQLAlchemy. Always bind variables. Never string-concatenate inputs into queries.
 - **Pydantic Validation:** Enforce strict type checking, regex patterns, and value ranges on all incoming request models.
 - **Command Injection:** Avoid `os.system` or `subprocess` with `shell=True`. Pass arguments as a list to `subprocess.run()`.
 - **Path Traversal:** Use `pathlib.Path.resolve()` to validate that file paths remain within the intended directory.
@@ -24,7 +24,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ### State and Token Management
 
-- **JWT Handling:** Store access tokens in memory or short-lived state. Store refresh tokens in `HttpOnly`, `Secure`, `SameSite=Strict` cookies.
+- **JWT Handling:** Store access tokens in browser memory. Store refresh tokens in `HttpOnly`, `Secure`, `SameSite=Strict` cookies.
 - **Token Verification:** Validate signature, issuer (`iss`), audience (`aud`), and expiration (`exp`) on every backend request.
 
 ### Enumeration and Brute Force Defense
@@ -35,7 +35,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ### Access Control
 
-- **Broken Object Level Authorization (BOLA):** Verify that the authenticated user explicitly owns the resource ID they are requesting. Do not rely solely on the presence of a valid JWT.
+- **Broken Object Level Authorization (BOLA):** Verify that the authenticated user explicitly owns the resource ID they are requesting (typically using hte `sub` claim). Do not rely solely on the presence of a valid JWT.
 
 ---
 
@@ -65,8 +65,8 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ### Dependency Security
 
-- **Backend:** Lock versions with `requirements.txt` or `poetry.lock`. Run `pip-audit` or `safety` to check for CVEs.
-- **Frontend:** Lock versions with `package-lock.json` or `yarn.lock`. Run `npm audit` or `yarn audit` during build pipelines.
+- **Backend:** Lock versions with `uv.lock`. Run `uv audit` to check for CVEs.
+- **Frontend:** Lock versions with `pnpm-lock.yaml`. Run `pnpm audit` to check for CVEs.
 
 ---
 

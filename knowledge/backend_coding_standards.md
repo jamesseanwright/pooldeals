@@ -6,7 +6,7 @@ This document defines the architectural and coding standards for building scalab
 
 ## 1. Architectural Pattern: Layered Bounded Contexts
 
-The application must be split into top-level packages representing **Bounded Contexts** (e.g., `vouchers`, `users`).
+The application must be split into top-level packages representing **Bounded Contexts** (e.g., `vouchers`, `users`, `auth` etc.).
 
 Each context acts as an independent module. Cross-context communication must happen exclusively through public service interfaces, never by querying another context's database tables directly.
 
@@ -16,7 +16,7 @@ src/
     ├── config.py               # Global configuration and environment variables
     ├── database.py             # Global DB engine and session setup
     ├── vouchers/               # Bounded Context: Vouchers
-    │   ├── init.py         # Explicit exports
+    │   ├── init.py             # Explicit exports
     │   ├── routes.py           # FastAPI endpoints/routers
     │   ├── services.py         # Public API surface / Business logic
     │   ├── repositories.py     # Context-private persistence layer
@@ -128,5 +128,11 @@ class VoucherRepository:
 
 - **Asynchronous Execution:** Use async/await definitions for all route handlers, service methods, and repository calls (`async def`).
 - **Type Hinting:** Enforce strict type hinting on all function signatures, variables, and return values.
+  - Static analysis of the source with `mypy` should yield no errors.
 - **Pydantic v2 Standards:** Use `.model_dump()` instead of `.dict()`, and `.model_validate()` instead of `.from_orm()`.
 - **Dependency Injection:** Utilize FastAPI's `Depends` for passing configuration, database sessions, and cross-context services.
+
+## 4. Tooling
+
+- **Use uv for package management.** Do **not** use pip or Poetry.
+- **Use Ruff for code formatting and linting**

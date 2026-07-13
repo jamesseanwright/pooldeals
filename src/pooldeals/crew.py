@@ -1,7 +1,7 @@
 from crewai import Agent, Crew, Process, Task
-from crewai.project import CrewBase, agent, crew, task
+from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
-
+from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 
 @CrewBase
 class Pooldeals():
@@ -34,5 +34,13 @@ class Pooldeals():
             agents=self.agents,
             tasks=self.get_tasks(),
             process=Process.sequential,
+            knowledge_sources=[TextFileKnowledgeSource(
+                "backend_coding_standards.md",
+                "frontend_coding_standards.md",
+                "general.md",
+                "security.md",
+                "source_control.md",
+                "testing.md",
+            )],
             verbose=True,
         )
