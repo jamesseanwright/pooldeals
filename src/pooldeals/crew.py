@@ -25,7 +25,7 @@ class Pooldeals():
         )
 
     def get_tasks(self) -> list[Task]:
-        return map(lambda t: Task(t), self.tasks_config.values)
+        return [Task(config=t) for t in self.tasks_config.values()]
 
     @crew
     def crew(self) -> Crew:
