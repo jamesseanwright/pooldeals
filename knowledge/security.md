@@ -4,7 +4,11 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ---
 
-## 1. Input Validation and Injection Defense
+## 1. Authentication Mechanism
+
+PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT mechanism, to authenticate users against the backend endpoints.
+
+## 2. Input Validation and Injection Defense
 
 ### Backend (Python & FastAPI)
 
@@ -20,7 +24,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ---
 
-## 2. Authentication, Authorization, and Enumeration
+## 3. Authentication, Authorization, and Enumeration
 
 ### State and Token Management
 
@@ -39,7 +43,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ---
 
-## 3. API Security and Cross-Origin Protocols
+## 4. API Security and Cross-Origin Protocols
 
 ### Transport and Headers
 
@@ -56,7 +60,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ---
 
-## 4. Dependencies and Secrets Management
+## 5. Dependencies and Secrets Management
 
 ### Secret Handling
 
@@ -70,7 +74,7 @@ This document outlines mandatory security protocols for this full-stack applicat
 
 ---
 
-## 5. Logging and Error Handling
+## 6. Logging and Error Handling
 
 ### Secure Logging
 
