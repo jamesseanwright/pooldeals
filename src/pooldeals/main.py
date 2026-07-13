@@ -13,13 +13,8 @@ def run():
     """
     Run the crew.
     """
-    inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
-    }
-
     try:
-        Pooldeals().crew().kickoff(inputs=inputs)
+        Pooldeals().crew().kickoff()
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
@@ -28,12 +23,8 @@ def train():
     """
     Train the crew for a given number of iterations.
     """
-    inputs = {
-        "topic": "AI LLMs",
-        'current_year': str(datetime.now().year)
-    }
     try:
-        Pooldeals().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+        Pooldeals().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2])
 
     except Exception as e:
         raise Exception(f"An error occurred while training the crew: {e}")
@@ -52,13 +43,8 @@ def test():
     """
     Test the crew execution and returns the results.
     """
-    inputs = {
-        "topic": "AI LLMs",
-        "current_year": str(datetime.now().year)
-    }
-
     try:
-        Pooldeals().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2], inputs=inputs)
+        Pooldeals().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2])
 
     except Exception as e:
         raise Exception(f"An error occurred while testing the crew: {e}")
@@ -79,8 +65,6 @@ def run_with_trigger():
 
     inputs = {
         "crewai_trigger_payload": trigger_payload,
-        "topic": "",
-        "current_year": ""
     }
 
     try:
