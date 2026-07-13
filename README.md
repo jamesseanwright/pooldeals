@@ -12,12 +12,14 @@ First, if you haven't already, install uv:
 pip install uv
 ```
 
-Next, navigate to your project directory and install the dependencies:
+Next, run `make install` to install both the uv dependencies and the pre-commit hook.
 
 (Optional) Lock the dependencies and install them by using the CLI command:
+
 ```bash
 crewai install
 ```
+
 ### Customizing
 
 **Add your `OPENAI_API_KEY` into the `.env` file**
@@ -46,6 +48,7 @@ The pooldeals Crew is composed of multiple AI agents, each with unique roles, go
 ## Support
 
 For support, questions, or feedback regarding the Pooldeals Crew or crewAI.
+
 - Visit our [documentation](https://docs.crewai.com)
 - Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
 - [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
