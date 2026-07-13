@@ -35,9 +35,10 @@ class Pooldeals():
             tasks=self.get_tasks(),
             process=Process.sequential,
             knowledge_sources=[TextFileKnowledgeSource(
+                "product.md",
+                "general.md",
                 "backend_coding_standards.md",
                 "frontend_coding_standards.md",
-                "general.md",
                 "security.md",
                 "source_control.md",
                 "testing.md",
