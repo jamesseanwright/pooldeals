@@ -1,4 +1,6 @@
-# PoolDeals Product Context & MVP Specifications---### Core Mission & Strategic Focus
+# PoolDeals Product Context & MVP Specifications
+
+### Core Mission & Strategic Focus
 
 PoolDeals is a hyper-local B2C discount and voucher platform designed for **Blackpool, UK**.
 
