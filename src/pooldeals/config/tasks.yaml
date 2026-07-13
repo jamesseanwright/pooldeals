@@ -1,8 +1,8 @@
 fastapi_bootstrap_task:
   description: >
-    TODO
+    TODO (mention initialising uv project)
   expected_output: >
-    TODO
+    TODO (mention hello world app)
   agent: builder
 
 database_schema_task:
@@ -12,14 +12,14 @@ database_schema_task:
     TODO
   agent: builder
 
-oauth_test:
+dockerfile_compose_task:
   description: >
-    TODO (mandate use of Alembic and SQLAlchemy)
+    TODO
   expected_output: >
     TODO
   agent: builder
 
-dockerfile_compose_task:
+auth_task:
   description: >
     TODO
   expected_output: >
