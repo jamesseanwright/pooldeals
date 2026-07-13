@@ -2,8 +2,6 @@
 import sys
 import warnings
 
-from datetime import datetime
-
 from pooldeals.crew import Pooldeals
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
