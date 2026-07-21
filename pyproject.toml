@@ -7,7 +7,7 @@ requires-python = ">=3.10,<3.14"
 dependencies = []
 
 [project.scripts]
-run_dev_flow = "pooldeals.main"
+run_dev_flow = "pooldeals.main:run_dev_flow"
 
 [build-system]
 requires = ["hatchling"]

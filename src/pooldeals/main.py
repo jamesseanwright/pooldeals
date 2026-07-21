@@ -82,5 +82,9 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
         return final_output
 
 
-if __name__ == "main":
+def run_dev_flow():
     PooldealsDevFlow().kickoff()
+
+
+if __name__ == "main":
+    run_dev_flow()
