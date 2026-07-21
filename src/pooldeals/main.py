@@ -18,7 +18,13 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
 
     def __init__(self) -> None:
         super().__init__()
-        self._pooldeals_crew = PooldealsCrew().crew()
+
+        # This feels a bit hacky; the CrewBaseMeta class which
+        # wraps our crew class via the @CrewBase decorator should
+        # correctly bind our crew and agents to the configured
+        # knowledge sources, tools etc. (https://github.com/crewAIInc/crewAI/blob/6d496f799b4bda411cab23ef04377c14a90f98f8/lib/crewai/src/crewai/project/crew_base.py#L229),
+        # but it would be nice to find a cleaner way to integrate our crew with this flow.
+        self._pooldeals_crew = PooldealsCrew()
         self._builder = self._pooldeals_crew.builder()
         self._reviewer = self._pooldeals_crew.reviewer()
 
