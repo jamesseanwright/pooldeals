@@ -1,79 +1,90 @@
-#!/usr/bin/env python
-import sys
-import warnings
+from crewai import Task
+from crewai.flow.flow import Flow, listen, start
+from pydantic import BaseModel
 
 from pooldeals.crew import PooldealsCrew
 
-warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
+
+class PooldealsReviewFlowState(BaseModel):
+    task_name: str = ""
+    builder_output: str = ""
+    review_feedback: str = ""
+    final_output: str = ""
 
 
-def run():
-    """
-    Run the crew.
-    """
-    try:
-        PooldealsCrew().crew().kickoff()
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
+class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
+    """Runs a builder task, has the reviewer critique its output, then has
+    the builder apply any resulting feedback."""
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._pooldeals_crew = PooldealsCrew()
+        self._builder = self._pooldeals_crew.builder()
+        self._reviewer = self._pooldeals_crew.reviewer()
 
-def train():
-    """
-    Train the crew for a given number of iterations.
-    """
-    try:
-        PooldealsCrew().crew().train(
-            n_iterations=int(sys.argv[1]), filename=sys.argv[2]
+    @start()
+    def run_builder_task(self) -> str:
+        task_name, task_config = next(
+            iter(self._pooldeals_crew.tasks_config.items())  # type: ignore[attr-defined]
         )
+        self.state.task_name = task_name
 
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
+        builder_task = Task(config=task_config)
+        output = self._builder.execute_task(builder_task)
+        self.state.builder_output = output
+        return output
 
-
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        PooldealsCrew().crew().replay(task_id=sys.argv[1])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-
-def test():
-    """
-    Test the crew execution and returns the results.
-    """
-    try:
-        PooldealsCrew().crew().test(n_iterations=int(sys.argv[1]), eval_llm=sys.argv[2])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the crew: {e}")
-
-
-def run_with_trigger():
-    """
-    Run the crew with trigger payload.
-    """
-    import json
-
-    if len(sys.argv) < 2:
-        raise Exception(
-            "No trigger payload provided. Please provide JSON payload as argument."
+    @listen(run_builder_task)
+    def review_builder_output(self, builder_output: str) -> str:
+        review_task = Task(
+            description=(
+                f"Review the code produced by the builder agent for the "
+                f"'{self.state.task_name}' task.\n\n"
+                "Builder's output:\n"
+                f"{builder_output}\n\n"
+                "Scrutinise it against PoolDeals' coding, testing and security "
+                "standards, and list any required changes as concrete, "
+                "actionable feedback. If no changes are required, clearly state "
+                "that the output is approved as-is."
+            ),
+            expected_output=(
+                "A list of concrete code review feedback items the builder must "
+                "address, or a clear statement of approval if no changes are needed."
+            ),
+            agent=self._reviewer,
         )
+        feedback = self._reviewer.execute_task(review_task, context=builder_output)
+        self.state.review_feedback = feedback
+        return feedback
 
-    try:
-        trigger_payload = json.loads(sys.argv[1])
-    except json.JSONDecodeError:
-        raise Exception("Invalid JSON payload provided as argument")
+    @listen(review_builder_output)
+    def apply_review_feedback(self, review_feedback: str) -> str:
+        fix_task = Task(
+            description=(
+                f"Update your previous output for the '{self.state.task_name}' "
+                "task to address the following code review feedback:\n\n"
+                f"{review_feedback}\n\n"
+                "Your original output was:\n"
+                f"{self.state.builder_output}\n\n"
+                "If the feedback states the output is already approved, leave it "
+                "unchanged."
+            ),
+            expected_output=(
+                "The final version of the task's output with all review feedback "
+                "addressed."
+            ),
+            agent=self._builder,
+        )
+        final_output = self._builder.execute_task(
+            fix_task, context=self.state.builder_output
+        )
+        self.state.final_output = final_output
+        return final_output
 
-    inputs = {
-        "crewai_trigger_payload": trigger_payload,
-    }
 
-    try:
-        result = PooldealsCrew().crew().kickoff(inputs=inputs)
-        return result
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew with trigger: {e}")
+def run_dev_flow():
+    PooldealsDevFlow().kickoff()
+
+
+if __name__ == "main":
+    run_dev_flow()

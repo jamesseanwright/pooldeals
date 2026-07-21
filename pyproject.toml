@@ -2,17 +2,12 @@
 name = "pooldeals"
 version = "0.1.0"
 description = "pooldeals using crewAI"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+authors = [{ name = "James Wright", email = "hi@james.engineering" }]
 requires-python = ">=3.10,<3.14"
 dependencies = []
 
 [project.scripts]
-pooldeals = "pooldeals.main:run"
-run_crew = "pooldeals.main:run"
-train = "pooldeals.main:train"
-replay = "pooldeals.main:replay"
-test = "pooldeals.main:test"
-run_with_trigger = "pooldeals.main:run_with_trigger"
+run_dev_flow = "pooldeals.main:run_dev_flow"
 
 [build-system]
 requires = ["hatchling"]
