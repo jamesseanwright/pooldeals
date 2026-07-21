@@ -5,14 +5,16 @@ from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledge
 from crewai_tools import FileWriterTool
 
 builder_llm = LLM(
-    model="openai/local-builder-model",  # dummy value. `openai/` prefix required to signal integration to LLM wrapper
     base_url="http://localhost:8080/v1",
+    custom_openai=True,
+    model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
 )
 
 reviewer_llm = LLM(
-    model="openai/local-reviewer-model",  # dummy value. `openai/` prefix required to signal integration to LLM wrapper
     base_url="http://localhost:8081/v1",
+    custom_openai=True,
+    model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
 )
 
