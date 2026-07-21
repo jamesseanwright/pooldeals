@@ -4,6 +4,8 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai_tools import FileWriterTool
 
+from pooldeals.tools.git_tool import GitTool
+
 builder_llm = LLM(
     base_url="http://localhost:8080/v1",
     custom_openai=True,
@@ -33,7 +35,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def builder(self) -> Agent:
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
-            tools=[FileWriterTool()],
+            tools=[FileWriterTool(), GitTool()],
             llm=builder_llm,
             verbose=True,
         )
@@ -68,5 +70,6 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                     "testing.md",
                 )
             ],
+            skills=["./skills"],
             verbose=True,
         )
