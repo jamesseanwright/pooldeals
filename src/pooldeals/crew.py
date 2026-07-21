@@ -61,13 +61,15 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             process=Process.sequential,
             knowledge_sources=[
                 TextFileKnowledgeSource(
-                    "product.md",
-                    "general.md",
-                    "backend_coding_standards.md",
-                    "frontend_coding_standards.md",
-                    "security.md",
-                    "source_control.md",
-                    "testing.md",
+                    file_paths=[
+                        "product.md",
+                        "general.md",
+                        "backend_coding_standards.md",
+                        "frontend_coding_standards.md",
+                        "security.md",
+                        "source_control.md",
+                        "testing.md",
+                    ],
                 )
             ],
             skills=["./skills"],
