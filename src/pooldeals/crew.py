@@ -1,8 +1,7 @@
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
-from crewai.llm import LLM
 from crewai_tools import FileWriterTool
 
 builder_llm = LLM(
