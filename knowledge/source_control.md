@@ -46,3 +46,7 @@ There is no GitHub pull request process. Instead, review happens agent-to-agent,
 3. **Apply Feedback:** The builder agent applies the reviewer's feedback directly to the working tree, or responds with a rationale if it disagrees with a specific point.
 4. **Re-validation:** After applying feedback, the builder re-runs the test suite and linter before committing the follow-up changes.
 5. **Completion:** Once the reviewer has no further feedback, the task is considered complete. No merge step is required since work already lives on `main`.
+
+## Keeping Work In-Sync with `origin/main`
+
+You must **always** make use the of the `--rebase` flag with `git pull` to ensure that your commits respect the linear history of the repository's trunk.
