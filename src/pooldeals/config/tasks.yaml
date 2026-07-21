@@ -17,3 +17,282 @@ fastapi_bootstrap_task:
     The application must be startable locally via `fastapi dev` (or `fastapi run`),
     serving the endpoint and its auto-generated docs at /docs.
   agent: builder
+
+docker_compose_bootstrap_task:
+  description: >
+    Produce a local Docker Compose setup for the PoolDeals backend that can also serve
+    as the basis for a production deployment.
+
+    Write a multi-stage `Dockerfile` under `app/backend` that builds the uv-managed
+    FastAPI project from `fastapi_bootstrap_task` into a slim runtime image, running the
+    application via `fastapi run` and exposing the appropriate port. The image must be
+    generic enough to run unmodified in either a local or production context, with all
+    environment-specific values (e.g. database URL, port) supplied at container runtime
+    via environment variables rather than baked in at build time.
+
+    Add a `docker-compose.yml` under `app` that builds the backend service from its
+    Dockerfile, mounts the source directory as a volume for live-reloading during local
+    development, exposes the backend port to the host, and provisions a Postgres
+    database service (with a named volume for data persistence) that the backend
+    depends on. Wire the backend's database connection settings via a `.env.example`
+    file (committed) documenting the required environment variables; do not commit an
+    actual `.env` file.
+  expected_output: >
+    An `app/backend/Dockerfile` implementing a multi-stage build that produces a slim
+    production-ready image for the FastAPI application, configured entirely via
+    environment variables.
+
+    An `app/docker-compose.yml` that, when run via `docker compose up`, starts the
+    backend (built from its Dockerfile, source-mounted for live reload) alongside a
+    Postgres database with a persistent named volume, with the backend able to reach
+    the database using the documented environment variables.
+
+    An `app/.env.example` file documenting all environment variables required by the
+    compose setup.
+  agent: builder
+
+react_bootstrap_task:
+  description: >
+    Bootstrap a minimal "hello world" React application under the `app/frontend`
+    directory.
+
+    Initialise a pnpm-managed TypeScript React project in `app/frontend` (e.g. via the
+    Vite React-TS template), configured with `strict: true` in `tsconfig.json`. The
+    application should render a single page displaying a simple greeting, e.g.
+    "Hello, World!".
+
+    Ignore all other product context and coding standards for this task beyond the
+    TypeScript strictness and pnpm tooling requirements; the goal is purely to verify
+    that the application can be bootstrapped and run.
+  expected_output: >
+    A runnable React application in `app/frontend` consisting of a pnpm-managed project
+    (package.json and lockfile) using TypeScript with `strict: true`, and a root
+    component rendering a single page with a greeting message.
+
+    The application must be startable locally via the project's dev script (e.g.
+    `pnpm dev`) and viewable in a browser.
+  agent: builder
+
+authentication_task:
+  description: >
+    Implement end-to-end authentication and authorization spanning both the FastAPI
+    backend and the React frontend, in line with PoolDeals' security standards.
+
+    On the backend, add an `auth` bounded context implementing OAuth 2 with stateless
+    JWTs: endpoints for registration, login, token refresh, and logout. Access tokens
+    must be short-lived; refresh tokens must be issued as `HttpOnly`, `Secure`,
+    `SameSite=Strict` cookies. Every protected endpoint must validate the JWT's
+    signature, issuer, audience, and expiration, and must derive the authenticated
+    user's identity from the token's `sub` claim rather than trusting client-supplied
+    identifiers. Support two account roles, `consumer` and `merchant`, encoded as a
+    claim and enforced via a reusable FastAPI dependency. Auth failures must return
+    generic, non-enumerating error messages.
+
+    On the frontend, add a login/registration flow, an authenticated API client that
+    holds the access token in memory (never in `localStorage`) and silently refreshes
+    it using the `HttpOnly` cookie, and route guarding that redirects unauthenticated
+    users and restricts merchant/consumer-only routes by role.
+  expected_output: >
+    A backend `auth` bounded context (routes, services, repositories, models, schemas)
+    exposing registration, login, refresh, and logout endpoints, plus a reusable
+    dependency that validates JWTs and enforces role-based access, all covered by
+    integration tests per the testing standards (including a rejected-token and a
+    wrong-role test case).
+
+    A frontend authentication module providing login/registration forms, an in-memory
+    access token store with automatic silent refresh, and route guards that redirect
+    unauthenticated users and enforce role-based access, covered by RTL/MSW integration
+    tests.
+
+    Both sides pass their linters, type checkers, and test suites, and are committed
+    per the source control workflow.
+  agent: builder
+
+cicd_pipeline_task:
+  description: >
+    Add a GitHub Actions CI pipeline that validates every commit to `main` across both
+    the frontend and backend, without any deployment step.
+
+    Add a workflow under `.github/workflows` triggered on pushes and pull requests
+    affecting `app/**`. It must run, as separate jobs (in parallel where they don't
+    depend on one another):
+
+    - Backend: install dependencies with uv, run Ruff format/lint checks, run mypy,
+      and run the pytest suite.
+    - Frontend: install dependencies with pnpm, run the linter and a TypeScript type
+      check, and run the Vitest suite.
+
+    Use dependency caching (uv's and pnpm's respective cache mechanisms) to keep runs
+    fast. The workflow must fail the build if any formatting, linting, type-checking,
+    or test step fails.
+  expected_output: >
+    A `.github/workflows` YAML file defining a CI workflow with separate backend and
+    frontend jobs, triggered on pushes and pull requests touching `app/**`, each
+    installing dependencies (uv / pnpm) with caching enabled and running format/lint
+    checks, type checks, and the respective test suite. No deployment steps are
+    included.
+  agent: builder
+
+consumer_registration_task:
+  description: >
+    Implement geofenced consumer registration and profile management on the backend
+    and frontend, per the Consumer Platform requirements.
+
+    On the backend, add a `users` bounded context (or extend an existing one) with a
+    Consumer profile (name, email, verified Blackpool postcode, active claims count)
+    and a registration endpoint that validates the supplied postcode falls within a
+    valid Blackpool postcode district (FY1 through FY8), rejecting any other postcode
+    with a clear validation error. Persist the consumer as a distinct role tied into
+    the auth context from `authentication_task`.
+
+    On the frontend, add a registration form collecting name, email, password, and
+    postcode, validating the postcode format client-side with Zod ahead of submission,
+    and surfacing the backend's validation error if the postcode is out of area.
+  expected_output: >
+    A backend consumer registration endpoint that persists a Consumer profile only when
+    the supplied postcode matches a valid Blackpool district (FY1-FY8), rejecting others
+    with a descriptive error, covered by integration tests for both valid and
+    out-of-area postcodes.
+
+    A frontend registration form with Zod-validated postcode input and error display
+    for rejected registrations, covered by RTL/MSW integration tests.
+  agent: builder
+
+merchant_onboarding_task:
+  description: >
+    Implement merchant profile management on the backend and frontend, per the
+    Merchant Platform requirements.
+
+    On the backend, add a `merchants` bounded context with a Merchant profile entity
+    (name, category, Blackpool business address, verified status) and endpoints to
+    create and retrieve a merchant profile, tied into the auth context's `merchant`
+    role. New merchants must default to an unverified state.
+
+    On the frontend, add a merchant onboarding form collecting the profile fields
+    and a simple dashboard landing page showing the merchant's profile and
+    verification status.
+  expected_output: >
+    A backend `merchants` bounded context exposing endpoints to create and fetch a
+    merchant profile, defaulting new merchants to unverified, covered by integration
+    tests.
+
+    A frontend merchant onboarding form and profile/status view, covered by RTL/MSW
+    integration tests.
+  agent: builder
+
+campaign_management_task:
+  description: >
+    Implement the self-serve campaign builder for merchants, per the Merchant Platform
+    requirements.
+
+    On the backend, add a `campaigns` bounded context with a Campaign entity (id,
+    merchant id, title, discount type [percentage, fixed amount, or BOGO], total
+    supply, remaining supply, validity window start/end dates) and endpoints to create,
+    list, and update a campaign, restricted to the owning merchant via the auth
+    context. Include an endpoint to instantly pause/resume a campaign. A campaign
+    must not be creatable or resumable with an expired validity window.
+
+    On the frontend, add a single-page campaign creation form (title, discount type,
+    inventory cap, validity window) achievable in under five steps, a list of the
+    merchant's campaigns, and a pause/resume control per campaign.
+  expected_output: >
+    A backend `campaigns` bounded context exposing create/list/update/pause/resume
+    endpoints, enforcing that only the owning merchant can manage a campaign and that
+    expired campaigns cannot be created or resumed, covered by integration tests.
+
+    A frontend campaign builder form and campaign list with an instant pause/resume
+    control, covered by RTL/MSW integration tests.
+  agent: builder
+
+deal_discovery_task:
+  description: >
+    Implement the consumer-facing deal discovery feed, per the Consumer Platform
+    requirements.
+
+    On the backend, add an endpoint (in the `campaigns` context or a dedicated
+    read-optimised view) returning active, non-expired, non-paused campaigns with
+    remaining supply greater than zero, filterable by category (Food, Retail,
+    Leisure), and indexed appropriately so the query is fast at MVP scale.
+
+    On the frontend, add a discovery feed page listing active deals with category
+    filtering, designed to load within two seconds under normal conditions.
+  expected_output: >
+    A backend endpoint returning only active, non-expired, in-stock campaigns,
+    filterable by category, covered by integration tests asserting expired, paused, and
+    sold-out campaigns are excluded.
+
+    A frontend discovery feed page with category filtering, covered by RTL/MSW
+    integration tests.
+  agent: builder
+
+voucher_claiming_task:
+  description: >
+    Implement voucher claiming for consumers, per the Consumer Platform requirements.
+
+    On the backend, add a `vouchers` bounded context with a Voucher entity (unique
+    code, campaign id, consumer id, status: Claimed, Redeemed, or Expired) and a claim
+    endpoint that: generates a unique, unguessable voucher code; decrements the
+    parent campaign's remaining supply atomically (rejecting the claim if supply is
+    exhausted); sets a clear, unalterable expiration date derived from the campaign's
+    validity window; and rejects the claim if the consumer already has 3 active
+    (Claimed, unexpired) vouchers.
+
+    On the frontend, add a "claim" action on deal cards in the discovery feed and a
+    "my vouchers" view listing the consumer's claimed vouchers with their codes and
+    expiration dates, disabling further claims once the 3-active limit is reached.
+  expected_output: >
+    A backend claim endpoint that atomically decrements campaign supply, generates a
+    unique voucher code with an immutable expiry, and enforces the 3-active-voucher
+    cap per consumer, covered by integration tests for the supply-exhausted,
+    cap-reached, and happy-path cases.
+
+    A frontend claim action and "my vouchers" view reflecting claimed vouchers and
+    disabling claiming at the cap, covered by RTL/MSW integration tests.
+  agent: builder
+
+voucher_redemption_task:
+  description: >
+    Implement offline voucher redemption and the merchant's voucher validator, per
+    both platforms' requirements.
+
+    On the backend, extend the `vouchers` context with a redemption endpoint,
+    restricted to the owning merchant, that accepts a voucher code, verifies it
+    belongs to one of the merchant's campaigns and is in the Claimed state and unexpired,
+    then marks it Redeemed. Reject already-redeemed or expired vouchers with a clear,
+    specific error.
+
+    On the frontend, add a lightweight mobile-friendly merchant validator page allowing
+    a code to be typed in or scanned (via a QR scanner using the device camera) and
+    submitted for redemption, showing a clear success or rejection result. Also render
+    each consumer voucher as a scannable QR code (encoding the voucher's unique code)
+    alongside its alphanumeric string in the "my vouchers" view.
+  expected_output: >
+    A backend redemption endpoint that transitions a Claimed voucher to Redeemed only
+    for its owning merchant, rejecting expired or already-redeemed vouchers with
+    specific errors, covered by integration tests for the valid, expired,
+    already-redeemed, and wrong-merchant cases.
+
+    A frontend merchant validator page supporting manual entry and QR scanning of
+    voucher codes with clear success/rejection feedback, and QR code rendering added to
+    the consumer's voucher view, covered by RTL/MSW integration tests.
+  agent: builder
+
+merchant_analytics_task:
+  description: >
+    Implement basic merchant analytics, per the Merchant Platform requirements.
+
+    On the backend, add an analytics endpoint (in the `campaigns` context) returning,
+    per campaign, the vouchers issued (claimed) versus vouchers redeemed counts,
+    computed directly from current voucher state so figures reflect redemptions within
+    minutes rather than via a batched/cached process.
+
+    On the frontend, add a simple analytics view on the merchant dashboard showing
+    issued-versus-redeemed counts per campaign.
+  expected_output: >
+    A backend analytics endpoint returning accurate, near-real-time issued and
+    redeemed counts per campaign, restricted to the owning merchant, covered by
+    integration tests.
+
+    A frontend merchant analytics view rendering these metrics per campaign, covered by
+    RTL/MSW integration tests.
+  agent: builder
