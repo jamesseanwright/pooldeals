@@ -11,7 +11,20 @@ Autonomous agents must follow structured source control protocols to ensure code
 
 - **Direct to Trunk:** Commit directly to `main`. Do not create feature or bugfix branches.
 - **Atomic Commits:** Bundle only related changes into a single commit. Prefer several small commits over one large one.
-- **Commit Messages:** Write clear, imperative-tone messages (e.g., `feat: add retry logic to API client`).
+- **Commit Messages:** Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification: `<type>(<optional scope>): <description>`, written in a clear, imperative tone (e.g., `feat: add retry logic to API client`, `fix(api): handle null response from pricing service`).
+- **Commit Types:** Use one of the types from [`@commitlint/config-conventional`](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional):
+  - `feat` — a new feature
+  - `fix` — a bug fix
+  - `docs` — documentation-only changes
+  - `style` — changes that don't affect code meaning (formatting, whitespace, etc.)
+  - `refactor` — a code change that neither fixes a bug nor adds a feature
+  - `perf` — a code change that improves performance
+  - `test` — adding or correcting tests
+  - `build` — changes to the build system or external dependencies
+  - `ci` — changes to CI configuration or scripts
+  - `chore` — other changes that don't modify source or test files
+  - `revert` — reverts a previous commit
+- **Breaking Changes:** Note breaking changes with a `!` after the type/scope (e.g., `feat!: drop support for legacy pricing API`) or a `BREAKING CHANGE:` footer.
 - **Validation:** Run local linter and test suites before every commit. Never commit code that fails tests or linting.
 - **Keep Trunk Healthy:** Because there is no branch isolation, every commit to `main` must leave the codebase in a working state.
 
