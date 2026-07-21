@@ -4,35 +4,3 @@ fastapi_bootstrap_task:
   expected_output: >
     TODO (mention hello world app)
   agent: builder
-
-database_schema_task:
-  description: >
-    TODO (mandate use of Alembic and SQLAlchemy)
-  expected_output: >
-    TODO
-  agent: builder
-
-dockerfile_compose_task:
-  description: >
-    TODO
-  expected_output: >
-    TODO
-  agent: builder
-
-auth_task:
-  description: >
-    TODO
-  expected_output: >
-    TODO
-  agent: builder
-
-test_boilerplate_task:
-  description: >
-    TODO (include testcontainers!)
-  expected_output: >
-    TODO
-  agent: builder
-
-# [...API impl tasks]
-
-# [...frontend bootstrap and impl tasks]
