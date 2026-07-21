@@ -18,7 +18,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
 
     def __init__(self) -> None:
         super().__init__()
-        self._pooldeals_crew = PooldealsCrew()
+        self._pooldeals_crew = PooldealsCrew().crew()
         self._builder = self._pooldeals_crew.builder()
         self._reviewer = self._pooldeals_crew.reviewer()
 
