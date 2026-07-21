@@ -1,61 +1,35 @@
 # Source Control Best Practices for Autonomous Agents
 
-Autonomous agents must follow structured source control protocols to ensure code quality, system stability, and seamless human-agent collaboration.
+Autonomous agents must follow structured source control protocols to ensure code quality and system stability.
 
 ## Core Technology Standard
 
 - **Standard:** Use Git as the primary version control system.
-- **Hosting Platform:** Use GitHub for repository hosting and collaboration.
-
-## Branching Strategy
-
-- **Protected Branch:** Never commit directly to the `main` or `master` branch.
-- **Feature Branches:** Create a new branch for every isolated task.
-- **Naming Convention:** Use the format `feature/task-description` or `bugfix/issue-number`.
+- **Workflow:** This project uses trunk-based development. There are no long-lived feature branches and no pull requests — all work is committed straight to the trunk (`main`) in small, frequent, atomic commits.
 
 ## Commit Guidelines
 
-- **Atomic Commits:** Bundle only related changes into a single commit.
+- **Direct to Trunk:** Commit directly to `main`. Do not create feature or bugfix branches.
+- **Atomic Commits:** Bundle only related changes into a single commit. Prefer several small commits over one large one.
 - **Commit Messages:** Write clear, imperative-tone messages (e.g., `feat: add retry logic to API client`).
-- **Validation:** Run local linter and test suites before committing code.
+- **Validation:** Run local linter and test suites before every commit. Never commit code that fails tests or linting.
+- **Keep Trunk Healthy:** Because there is no branch isolation, every commit to `main` must leave the codebase in a working state.
 
-## Pull Request (PR) Protocol
+## Test-Driven Development Workflow
 
-Agents must raise a GitHub Pull Request immediately after completing a task.
+For each task:
 
-### 1. PR Creation
+1. Write a test case upfront that captures the desired behavior.
+2. Implement the code required to satisfy that test.
+3. Run the full local test suite and linter to confirm nothing is broken.
+4. Commit the change with a clear, atomic commit message.
 
-- **Target Branch:** Set the base branch to `main`.
-- **Title:** Summarize the change concisely.
-- **Description:** Provide a clear summary of what was changed and why.
+## Review Workflow
 
-### 2. Automation and Testing
+There is no GitHub pull request process. Instead, review happens agent-to-agent, directly on the working code:
 
-- **CI/CD:** Verify that all automated GitHub Actions pass.
-- **Conflicts:** Resolve any merge conflicts with the base branch autonomously.
-
-### 3. Review and Merge
-
-- **Reviewers:** Assign human supervisors or peer agents to review the code.
-- **Merging:** Do not merge until all automated checks pass and approvals are secured.
-
-## Handling Pull Request Feedback
-
-Agents must process feedback from human reviewers or other validation agents systematically.
-
-### 1. Review Analysis
-
-- **Parse Comments:** Extract actionable requests from PR line comments.
-- **Acknowledge:** Reply to the comment to confirm the feedback is understood.
-- **Clarify:** Prompt the reviewer if instructions are ambiguous or contradictory.
-
-### 2. Implementing Changes
-
-- **Local Fixes:** Apply required changes directly to the active feature branch.
-- **Test Verification:** Re-run local test suites to ensure fixes do not introduce regressions.
-- **Push Updates:** Push new commits to the same branch to automatically update the PR.
-
-### 3. Resolving the Review
-
-- **Thread Resolution:** Mark comment threads as resolved once changes are pushed.
-- **Re-request Review:** Trigger a formal re-review request on GitHub if required.
+1. **Initial Output:** The builder agent completes a task (implementation plus tests) and commits it.
+2. **Critique:** The reviewer agent inspects the builder's changes and produces feedback — noting any issues with coding standards, test coverage, security, performance, or adherence to the task definition.
+3. **Apply Feedback:** The builder agent applies the reviewer's feedback directly to the working tree, or responds with a rationale if it disagrees with a specific point.
+4. **Re-validation:** After applying feedback, the builder re-runs the test suite and linter before committing the follow-up changes.
+5. **Completion:** Once the reviewer has no further feedback, the task is considered complete. No merge step is required since work already lives on `main`.
