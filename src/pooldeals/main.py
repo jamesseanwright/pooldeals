@@ -1,20 +1,24 @@
 from crewai import Task
-from crewai.flow.flow import Flow, listen, start
-from pydantic import BaseModel
+from crewai.flow.flow import Flow, listen, router, start
+from pydantic import BaseModel, Field
 
 from pooldeals.crew import PooldealsCrew
 
 
 class PooldealsReviewFlowState(BaseModel):
+    task_names: list[str] = Field(default_factory=list)
+    task_index: int = 0
     task_name: str = ""
     builder_output: str = ""
     review_feedback: str = ""
     final_output: str = ""
+    final_outputs: dict[str, str] = Field(default_factory=dict)
 
 
 class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
-    """Runs a builder task, has the reviewer critique its output, then has
-    the builder apply any resulting feedback."""
+    """Runs each configured task through the builder agent, has the reviewer
+    critique its output, then has the builder apply any resulting feedback,
+    before moving on to the next task."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -29,10 +33,15 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
         self._reviewer = self._pooldeals_crew.reviewer()
 
     @start()
+    @listen("run_next_task")
     def run_builder_task(self) -> str:
-        task_name, task_config = next(
-            iter(self._pooldeals_crew.tasks_config.items())  # type: ignore[attr-defined]
-        )
+        if not self.state.task_names:
+            self.state.task_names = list(
+                self._pooldeals_crew.tasks_config.keys()  # type: ignore[attr-defined]
+            )
+
+        task_name = self.state.task_names[self.state.task_index]
+        task_config = self._pooldeals_crew.tasks_config[task_name]  # type: ignore[attr-defined]
         self.state.task_name = task_name
 
         builder_task = Task(config=task_config)
@@ -85,12 +94,24 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
             fix_task, context=self.state.builder_output
         )
         self.state.final_output = final_output
+        self.state.final_outputs[self.state.task_name] = final_output
         return final_output
+
+    @router(apply_review_feedback, emit=["run_next_task", "all_tasks_complete"])
+    def route_to_next_task(self) -> str:
+        self.state.task_index += 1
+        if self.state.task_index < len(self.state.task_names):
+            return "run_next_task"
+        return "all_tasks_complete"
+
+    @listen("all_tasks_complete")
+    def finish(self) -> dict[str, str]:
+        return self.state.final_outputs
 
 
 def run_dev_flow():
     PooldealsDevFlow().kickoff()
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     run_dev_flow()
