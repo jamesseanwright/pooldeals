@@ -71,7 +71,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
             ),
             expected_output=(
                 "The final version of the task's output with all review feedback "
-                "addressed."
+                "addressed, with all changes written to their respective output files."
             ),
             agent=self._builder,
         )
