@@ -78,6 +78,7 @@ class GitTool(BaseTool):
                 capture_output=True,
                 text=True,
                 timeout=60,
+                stdin=subprocess.DEVNULL,
             )
         except subprocess.TimeoutExpired:
             return f"Git command timed out: {' '.join(argv)}"
