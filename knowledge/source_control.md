@@ -49,4 +49,4 @@ There is no GitHub pull request process. Instead, review happens agent-to-agent,
 
 ## Keeping Work In-Sync with `origin/main`
 
-You must **always** make use the of the `--rebase` flag with `git pull` to ensure that your commits respect the linear history of the repository's trunk.
+You must **always** make use of the `--rebase` flag with `git pull` to ensure that your commits respect the linear history of the repository's trunk.
