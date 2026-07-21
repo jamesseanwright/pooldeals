@@ -2,7 +2,20 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
+from crewai.llm import LLM
 from crewai_tools import FileWriterTool
+
+builder_llm = LLM(
+    model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_S",
+    base_url="http://localhost:8080/v1",
+    api_key="not-needed",  # not required as running model locally via llama_server OpenAPI compat
+)
+
+reviewer_llm = LLM(
+    model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M",
+    base_url="http://localhost:8081/v1",
+    api_key="not-needed",  # not required as running model locally via llama_server OpenAPI compat
+)
 
 
 @CrewBase
@@ -20,6 +33,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[FileWriterTool()],
+            llm=builder_llm,
             verbose=True,
         )
 
@@ -27,10 +41,12 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def reviewer(self) -> Agent:
         return Agent(
             config=self.agents_config["reviewer"],  # type: ignore[index]
+            llm=reviewer_llm,
             verbose=True,
         )
 
     def get_tasks(self) -> list[Task]:
+        # TODO: type properly
         return [Task(config=t) for t in self.tasks_config.values()]  # type: ignore
 
     @crew
