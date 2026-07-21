@@ -7,13 +7,13 @@ from crewai_tools import FileWriterTool
 builder_llm = LLM(
     model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_S",
     base_url="http://localhost:8080/v1",
-    api_key="not-needed",  # not required as running model locally via llama_server OpenAPI compat
+    api_key="not-needed",  # not required as running model locally via llama_server OpenAI compat API
 )
 
 reviewer_llm = LLM(
     model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M",
     base_url="http://localhost:8081/v1",
-    api_key="not-needed",  # not required as running model locally via llama_server OpenAPI compat
+    api_key="not-needed",  # not required as running model locally via llama_server OpenAI compat API
 )
 
 
