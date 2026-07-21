@@ -94,10 +94,12 @@ class GitTool(BaseTool):
         all_tracked: bool,
     ) -> List[str]:
         if command == "add":
-            assert files
+            if not files:
+                raise ValueError("'files' is required for the 'add' command.")
             return ["git", "add", "--", *files]
         if command == "commit":
-            assert message
+            if not message:
+                raise ValueError("'message' is required for the 'commit' command.")
             flag = "-am" if all_tracked else "-m"
             return ["git", "commit", flag, message]
         if command == "pull_rebase":
