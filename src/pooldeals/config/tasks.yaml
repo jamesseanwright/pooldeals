@@ -1,6 +1,19 @@
 fastapi_bootstrap_task:
   description: >
-    TODO (mention initialising uv project)
+    Bootstrap a minimal "hello world" FastAPI application under the `app/backend` directory.
+
+    Initialise a uv project in `app/backend` with FastAPI and the fastapi CLI
+    (`fastapi[standard]`) as dependencies. Create a FastAPI app exposing a single
+    GET / endpoint that returns a JSON greeting, e.g. `{"message": "Hello, World!"}`.
+
+    Ignore all other product context and coding standards for this task; the goal
+    is purely to verify that the application can be bootstrapped and run.
   expected_output: >
-    TODO (mention hello world app)
+    A runnable FastAPI application in `app/backend` consisting of a uv-managed project
+    (pyproject.toml and lockfile) with FastAPI and the fastapi CLI installed, and a
+    main application module defining a FastAPI app with a single GET / endpoint that
+    returns a JSON greeting.
+
+    The application must be startable locally via `fastapi dev` (or `fastapi run`),
+    serving the endpoint and its auto-generated docs at /docs.
   agent: builder
