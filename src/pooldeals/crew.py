@@ -5,13 +5,13 @@ from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledge
 from crewai_tools import FileWriterTool
 
 builder_llm = LLM(
-    model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_S",
+    model="openai/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_S",  # `openai/` prefix required to signal integration to LLM wrapper
     base_url="http://localhost:8080/v1",
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
 )
 
 reviewer_llm = LLM(
-    model="unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M",
+    model="openai/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M",  # `openai/` prefix required to signal integration to LLM wrapper
     base_url="http://localhost:8081/v1",
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
 )
