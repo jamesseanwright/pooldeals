@@ -1,44 +1,17 @@
 [project]
-name = "pool-deals-backend"
+name = "pooldeals-backend"
 version = "0.1.0"
-description = "Backend API for PoolDeals"
+description = "PoolDeals backend service"
 authors = [
-    {name = "PoolDeals Team", email = "team@pooldeals.com"}
+    {name = "PoolDeals Team"},
 ]
 dependencies = [
-    "fastapi[standard]==0.104.1",
-    "python-jose==1.7.0",
-    "passlib==1.7.4",
-    "pydantic>=2.0.0,<3.0.0",
-]
-keywords = ["fastapi", "backend", "api"]
-license = {text = "MIT"}
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Framework :: FastAPI",
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-
-[project.optional-dependencies]
-test = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "httpx>=0.23.0",
-]
-lint = [
-    "ruff>=0.0.280",
-    "mypy>=0.991",
+    "fastapi[standard]>=0.104.0",
 ]
 
 [project.scripts]
-test = "scripts.test"
-lint = "scripts.lint"
+fastapi = "fastapi.cli:main"
 
 [build-system]
-requires = ["uv>=0.1.10"]
-build-backend = "uv.build_api"
-
-[tool.uv]
-dev-dependencies = ["pytest", "ruff", "mypy"]
+requires = ["uv>=0.1.16"]
+build-backend = "uv"
