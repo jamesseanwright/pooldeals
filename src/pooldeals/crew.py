@@ -10,6 +10,7 @@ from pooldeals.tools.git_tools import (
     GitPullRebaseTool,
     GitPushTool,
     GitStatusTool,
+    PreCommitCheckTool,
     require_clean_working_tree,
 )
 
@@ -49,6 +50,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 SafeFileWriterTool(),
                 GitStatusTool(),
                 GitAddTool(),
+                PreCommitCheckTool(),
                 GitCommitTool(),
                 GitPullRebaseTool(),
                 GitPushTool(),

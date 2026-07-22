@@ -44,6 +44,27 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
     return f"`{' '.join(argv)}` succeeded (exit 0):\n{output}"
 
 
+def _run_pre_commit(files: List[str], working_directory: Optional[str]) -> str:
+    argv = ["pre-commit", "run"]
+    argv += ["--files", *files] if files else ["--all-files"]
+
+    try:
+        result = subprocess.run(
+            argv,
+            cwd=working_directory,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            stdin=subprocess.DEVNULL,
+        )
+    except subprocess.TimeoutExpired:
+        return f"`{' '.join(argv)}` timed out after 120s."
+
+    output = (result.stdout + result.stderr).strip()
+    status = "passed — no errors" if result.returncode == 0 else "found errors"
+    return f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
+
+
 def working_tree_is_clean(working_directory: Optional[str] = None) -> Tuple[bool, str]:
     """Return (True, "") if there are no uncommitted changes, else (False, porcelain status).
 
@@ -136,6 +157,33 @@ class GitStatusTool(BaseTool):
         return _git_status(self.working_directory)
 
 
+class PreCommitCheckInput(BaseModel):
+    """Input schema for PreCommitCheckTool."""
+
+    files: List[str] = Field(
+        default_factory=list,
+        description=(
+            "File paths to check. If omitted, checks all files in the repository. "
+            "Pass the exact paths you have changed."
+        ),
+    )
+
+
+class PreCommitCheckTool(BaseTool):
+    name: str = "Pre-Commit Check"
+    description: str = (
+        "Run ruff-format, ruff-check, and mypy against your changed files and report "
+        "the exact file:line errors, WITHOUT committing anything. Always call this "
+        "before Git Commit, and call it again after making fixes — repeat until it "
+        "reports no errors, then call Git Commit."
+    )
+    args_schema: Type[BaseModel] = PreCommitCheckInput
+    working_directory: Optional[str] = None
+
+    def _run(self, files: Optional[List[str]] = None) -> str:
+        return _run_pre_commit(files or [], self.working_directory)
+
+
 class GitCommitInput(BaseModel):
     """Input schema for GitCommitTool."""
 
@@ -156,11 +204,17 @@ class GitCommitTool(BaseTool):
     name: str = "Git Commit"
     description: str = """Commit staged (or all tracked, with all_tracked=True) changes using 'git commit'.
 
-    **Note:** this repository is configured to run pre-commit checks, which can be found in the
-    .pre-commit-config.yaml file in the repository root. If any of these checks fail, you **must** resolve
-    the errors as described in the output before you can proceed with the next step of the task. If you
-    attempt to proceed without resolving these errors, then **all** subsequent attempted commits will fail
-    your latest changes will not be synchronised with the Git repository.
+    Follow this exact procedure before calling this tool:
+    1. Call `Pre-Commit Check` on the files you changed.
+    2. Read its output line by line. For each `file:line` error it reports, open that
+       exact file and fix only that issue.
+    3. Call `Pre-Commit Check` again. Repeat steps 2-3 until it reports no errors.
+    4. Only then call this tool (`Git Commit`).
+
+    This repository runs pre-commit hooks (ruff-format, ruff-check, mypy — see
+    .pre-commit-config.yaml) on every commit. If you call this tool without following the
+    procedure above, the commit will fail and your changes will remain unsynchronised
+    with the Git repository.
     """
     args_schema: Type[BaseModel] = GitCommitInput
     working_directory: Optional[str] = None
