@@ -10,7 +10,7 @@ from pooldeals.tools.git_tools import (
     GitPushTool,
 )
 
-from pooldeals.tools.safe_file_writer_tool import safe_file_writer
+from pooldeals.tools.safe_file_writer_tool import SafeFileWriterTool
 
 builder_llm = LLM(
     base_url="http://localhost:8080/v1",
@@ -42,7 +42,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[
-                safe_file_writer,
+                SafeFileWriterTool(),
                 GitAddTool(),
                 GitCommitTool(),
                 GitPullRebaseTool(),
