@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-builder_devices=0,1 # i.e. first RTX 3090 and the 4060
-reviewer_devices=2 # i.e. Second RTX 3090
+builder_devices=0,2 # i.e. first RTX 3090 and the 4060
+reviewer_devices=1 # i.e. Second RTX 3090
 
 # 5-bit quantised model that run across the first 3090 and 4060
 # A split ratio of '0.5,0.5' forces the KV cache and layers
