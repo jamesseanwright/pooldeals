@@ -151,12 +151,15 @@ class GitCommitTool(BaseTool):
             return _run_git(argv, self.working_directory)
         except GitCommandError as exc:
             raise GitCommandError(
-                "PRE-COMMIT HOOKS HAVE FAILED! The `git commit` command failed, presumably "
+                "PRE-COMMIT FAILED! The `git commit` command failed, potentially "
                 f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{exc}\n\n"
-                "You must fix the reported errors and then retry the commit. Do not proceed "
+                "Assess the command output. If this is the case, you must fix the reported ",
+                "errors and then retry the commit. Do not proceed "
                 "to any other step — the commit does not exist and your changes are not "
                 "synchronised with the Git repository until this succeeds. Consult "
-                ".pre-commit-config.yaml in the repository root for the checks that run."
+                ".pre-commit-config.yaml in the repository root for the checks that run.\n\n"
+                "If the output solely reports that no files are staged for commit then no "
+                "remediation is required, and you can proceed with the next step.",
             ) from exc
 
 
