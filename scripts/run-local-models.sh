@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-builder_devices=0,2 # i.e. both RTX 3090s
-reviewer_devices=1 # i.e. RTX 4060 Ti
+builder_devices=0,1 # i.e. first RTX 3090 and the 4060
+reviewer_devices=2 # i.e. Second RTX 3090
 
-# 5-bit quantised model that run across the two respective RTX 3090s.
+# 5-bit quantised model that run across the first 3090 and 4060
 # A split ratio of '0.5,0.5' forces the KV cache and layers
 # to span evenly across both logical IDs.
 #
@@ -21,8 +21,10 @@ CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
     -n 4096 \
     --port 8080 &>/dev/null &
 
-# 3-bit quantised model that runs on the RTX 4060 Ti (16 GB)
+# 3-bit quantised model that runs on the second 3090
 CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M \
     -t 4 \
+    -ctk q8_0 \
+    -ctv q8_0 \
     --port 8081 &>/dev/null &
