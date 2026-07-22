@@ -45,8 +45,7 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
 
 
 def _run_pre_commit(files: List[str], working_directory: Optional[str]) -> str:
-    argv = ["pre-commit", "run"]
-    argv += ["--files", *files] if files else ["--all-files"]
+    argv = ["pre-commit", "run", "--files", *files]
 
     try:
         result = subprocess.run(
@@ -161,10 +160,13 @@ class PreCommitCheckInput(BaseModel):
     """Input schema for PreCommitCheckTool."""
 
     files: List[str] = Field(
-        default_factory=list,
+        ...,
+        min_length=1,
         description=(
-            "File paths to check. If omitted, checks all files in the repository. "
-            "Pass the exact paths you have changed."
+            "File paths to check. Required. Must contain at least one file path — "
+            "NEVER pass an empty list. Pass the exact paths you have changed. If you "
+            "are not certain which files changed, call Git Status first and pass the "
+            "exact paths it reports."
         ),
     )
 
@@ -172,16 +174,22 @@ class PreCommitCheckInput(BaseModel):
 class PreCommitCheckTool(BaseTool):
     name: str = "Pre-Commit Check"
     description: str = (
-        "Run ruff-format, ruff-check, and mypy against your changed files and report "
+        "Run ruff-format, ruff-check, and mypy against the given files and report "
         "the exact file:line errors, WITHOUT committing anything. Always call this "
-        "before Git Commit, and call it again after making fixes — repeat until it "
-        "reports no errors, then call Git Commit."
+        "before Git Commit, passing the exact files you changed, and call it again "
+        "after making fixes — repeat until it reports no errors, then call Git Commit."
     )
     args_schema: Type[BaseModel] = PreCommitCheckInput
     working_directory: Optional[str] = None
 
-    def _run(self, files: Optional[List[str]] = None) -> str:
-        return _run_pre_commit(files or [], self.working_directory)
+    def _run(self, files: List[str]) -> str:
+        if not files:
+            status = _git_status(self.working_directory)
+            raise ValueError(
+                "'files' must be a non-empty list. Call Git Status and pass the "
+                f"exact paths you want checked. Current repo state:\n{status}"
+            )
+        return _run_pre_commit(files, self.working_directory)
 
 
 class GitCommitInput(BaseModel):
