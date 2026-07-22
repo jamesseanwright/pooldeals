@@ -1,15 +1,20 @@
 import subprocess
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Literal
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
+class GitResult(BaseModel):
+    status: Literal["succeeded", "failed"]
+    contents: str
+
+
 def _git_status(working_directory: Optional[str]) -> str:
-    return _run_git(["git", "status", "--porcelain"], working_directory)
+    return _run_git(["git", "status", "--porcelain"], working_directory).contents
 
 
-def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
+def _run_git(argv: List[str], working_directory: Optional[str]) -> GitResult:
     try:
         result = subprocess.run(
             argv,
@@ -20,11 +25,17 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
             stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired:
-        return f"Git command timed out: {' '.join(argv)}"
+        return GitResult(
+            status="failed", contents=f"Git command timed out: {' '.join(argv)}"
+        )
 
     output = (result.stdout + result.stderr).strip()
     status = "succeeded" if result.returncode == 0 else "failed"
-    return f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
+
+    return GitResult(
+        status=status,
+        contents=f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}",
+    )
 
 
 class GitAddInput(BaseModel):
@@ -56,7 +67,7 @@ class GitAddTool(BaseTool):
                 f"exact paths you want staged. Current repo state:\n{status}"
             )
         argv = ["git", "add", "--", *files]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory).contents
 
 
 class GitStatusInput(BaseModel):
@@ -95,7 +106,14 @@ class GitCommitInput(BaseModel):
 
 class GitCommitTool(BaseTool):
     name: str = "Git Commit"
-    description: str = "Commit staged (or all tracked, with all_tracked=True) changes using 'git commit'."
+    description: str = """Commit staged (or all tracked, with all_tracked=True) changes using 'git commit'.
+
+    **Note:** this repository is configured to run pre-commit checks, which can be found in the
+    .pre-commit-config.yaml file in the repository root. If any of these checks fail, you **must** resolve
+    the errors as described in the output before you can proceed with the next step of the task. If you
+    attempt to proceed without resolving these errors, then **all** subsequent attempted commits will fail
+    your latest changes will not be synchronised with the Git repository.
+    """
     args_schema: Type[BaseModel] = GitCommitInput
     working_directory: Optional[str] = None
 
@@ -104,7 +122,25 @@ class GitCommitTool(BaseTool):
             raise ValueError("'message' must be a non-empty string.")
         flag = "-am" if all_tracked else "-m"
         argv = ["git", "commit", flag, message]
-        return _run_git(argv, self.working_directory)
+
+        res = _run_git(argv, self.working_directory)
+
+        if res.status == "failed":
+            return f"""**PRE-COMMIT HOOKS HAVE FAILED!**
+
+            The `git commit` command returned the following error, presumably as a result of the pre-commit
+            hook failing:
+
+            {res.contents}
+
+            You **must** fix the reported errors accordingly and then retry the commit. **Do not** attempt to proceed
+            without resolving these errors as **all** subsequent attempted commits will fail and your latest changes
+            will not be synchronised with the Git repository.
+
+            To understand the tools that are run on pre-commit, consult the .pre-commit-config.yaml file in the repository root.
+            """
+
+        return res.contents
 
 
 class GitPullRebaseInput(BaseModel):
@@ -119,7 +155,7 @@ class GitPullRebaseTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "pull", "--rebase", "origin", "main"]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory).contents
 
 
 class GitPushInput(BaseModel):
@@ -134,4 +170,4 @@ class GitPushTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "push", "origin", "main"]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory).contents

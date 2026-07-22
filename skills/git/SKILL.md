@@ -41,6 +41,8 @@ git commit -am "<type>(<scope>): <description>"
 - Use `-m` to supply the Conventional Commits message directly on the command line.
 - Keep each commit atomic: one logical change per commit.
 
+**Note:** this repository is configured to run pre-commit checks, which can be found in the [.pre-commit-config.yaml](../../.pre-commit-config.yaml) file in the repository root. If any of these checks fail, you **must** resolve the errors as described in the output before you can proceed with the next step of the task. If you attempt to proceed without resolving these errors, then **all** subsequent attempted commits will fail your latest changes will not be synchronised with the Git repository.
+
 ## 4. Sync before you push — `git pull --rebase`
 
 Always rebase onto the latest trunk before pushing, so history stays linear and your commits land on top of the current `main`:
@@ -65,13 +67,13 @@ git push origin main
 
 The Git tool enforces a strict, narrow set of command/argument permutations. Any other combination is rejected before it runs:
 
-| Command       | `files`        | `message`      | `all_tracked`  |
-| ------------- | -------------- | -------------- | -------------- |
-| `status`      | ❌ not allowed | ❌ not allowed | ❌ not allowed |
+| Command       | `files`                | `message`      | `all_tracked`  |
+| ------------- | ---------------------- | -------------- | -------------- |
+| `status`      | ❌ not allowed         | ❌ not allowed | ❌ not allowed |
 | `add`         | ✅ required, non-empty | ❌ not allowed | ❌ not allowed |
-| `commit`      | ❌ not allowed | ✅ required    | optional       |
-| `pull_rebase` | ❌ not allowed | ❌ not allowed | ❌ not allowed |
-| `push`        | ❌ not allowed | ❌ not allowed | ❌ not allowed |
+| `commit`      | ❌ not allowed         | ✅ required    | optional       |
+| `pull_rebase` | ❌ not allowed         | ❌ not allowed | ❌ not allowed |
+| `push`        | ❌ not allowed         | ❌ not allowed | ❌ not allowed |
 
 In particular:
 

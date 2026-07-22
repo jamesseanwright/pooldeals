@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
+from crewai_tools import FileReadTool
 
 from pooldeals.tools.git_tools import (
     GitAddTool,
@@ -43,6 +44,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[
+                FileReadTool(),
                 SafeFileWriterTool(),
                 GitStatusTool(),
                 GitAddTool(),
