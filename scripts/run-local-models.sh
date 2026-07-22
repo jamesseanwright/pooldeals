@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
     -t 4 \
     -ngl 48 \
     -ts 0.5,0.5 \
-    -c 135000 \
+    -c 150000 \
     -ctk q8_0 \
     -ctv q8_0 \
     -fa 1 \
