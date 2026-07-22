@@ -23,13 +23,19 @@ class GitToolInput(BaseModel):
     )
     files: Optional[List[str]] = Field(
         default=None,
-        description="File paths to stage. Required for 'add', ignored otherwise.",
+        description=(
+            "File paths to stage. Required for 'add'. Do not pass this for any "
+            "other command — providing it alongside 'commit', 'pull_rebase', or "
+            "'push' raises an error."
+        ),
     )
     message: Optional[str] = Field(
         default=None,
         description=(
             "Conventional Commits message, e.g. 'feat(scope): description'. "
-            "Required for 'commit', ignored otherwise."
+            "Required for 'commit'. Do not pass this for any other command — "
+            "providing it alongside 'add', 'pull_rebase', or 'push' raises an "
+            "error."
         ),
     )
     all_tracked: bool = Field(
@@ -37,7 +43,8 @@ class GitToolInput(BaseModel):
         description=(
             "For 'commit' only: pass -a to automatically stage modifications to "
             "already-tracked files, per SKILL.md guidance. Does not pick up new, "
-            "untracked files."
+            "untracked files. Leave this False for every other command — passing "
+            "True alongside 'add', 'pull_rebase', or 'push' raises an error."
         ),
     )
 
