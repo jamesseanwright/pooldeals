@@ -1,10 +1,30 @@
+import re
 import subprocess
-from typing import List, Optional, Type
+from typing import Callable, List, Optional, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from pooldeals.tools.git_tools import _git_status
+
+_PRE_COMMIT_BANNER_LINE = re.compile(
+    r"^(\S.*\.{3,}(Passed|Failed)|- hook id:|- exit code:)"
+)
+
+
+def _strip_pre_commit_banner(output: str) -> str:
+    """Drop pre-commit's own hook-status banner lines, keeping only the real tool output.
+
+    `pre-commit run` wraps every hook's output in boilerplate (e.g.
+    "mypy.....Failed", "- hook id: mypy", "- exit code: 1") before the actual
+    `file:line: error: ...` lines. That's noise the model has to read past to find the
+    one line it actually needs to act on, so we filter it out here rather than asking a
+    small model to do it by eye on every check.
+    """
+    lines = [
+        line for line in output.splitlines() if not _PRE_COMMIT_BANNER_LINE.match(line)
+    ]
+    return "\n".join(lines).strip()
 
 
 def _reject_non_python_files(files: List[str]) -> None:
@@ -17,7 +37,10 @@ def _reject_non_python_files(files: List[str]) -> None:
 
 
 def _run_check(
-    argv: List[str], working_directory: Optional[str], timeout: int = 60
+    argv: List[str],
+    working_directory: Optional[str],
+    timeout: int = 60,
+    output_filter: Optional[Callable[[str], str]] = None,
 ) -> str:
     """Run a static-analysis command, returning its output regardless of exit code.
 
@@ -39,6 +62,8 @@ def _run_check(
         return f"`{' '.join(argv)}` timed out after {timeout}s."
 
     output = (result.stdout + result.stderr).strip()
+    if output_filter is not None:
+        output = output_filter(output)
     status = "passed — no errors" if result.returncode == 0 else "found errors"
     return f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
 
@@ -130,4 +155,5 @@ class MypyCheckTool(BaseTool):
             ["pre-commit", "run", "mypy", "--files", *files],
             self.working_directory,
             timeout=120,
+            output_filter=_strip_pre_commit_banner,
         )
