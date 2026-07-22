@@ -1,20 +1,26 @@
 import subprocess
-from typing import List, Optional, Type, Literal
+from typing import List, Optional, Tuple, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
-class GitResult(BaseModel):
-    status: Literal["succeeded", "failed"]
-    contents: str
+class GitCommandError(RuntimeError):
+    """Raised when a git subprocess exits non-zero or times out.
+
+    Letting this propagate out of a tool's `_run` (rather than returning an error string)
+    is deliberate: CrewAI's tool executor catches it, feeds the message back to the agent
+    as a distinct tool-error observation, and automatically retries the step — this lands
+    with a small quantised model far more reliably than a "success" string containing
+    error text ever does.
+    """
 
 
 def _git_status(working_directory: Optional[str]) -> str:
-    return _run_git(["git", "status", "--porcelain"], working_directory).contents
+    return _run_git(["git", "status", "--porcelain"], working_directory)
 
 
-def _run_git(argv: List[str], working_directory: Optional[str]) -> GitResult:
+def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
     try:
         result = subprocess.run(
             argv,
@@ -25,17 +31,35 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> GitResult:
             stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired:
-        return GitResult(
-            status="failed", contents=f"Git command timed out: {' '.join(argv)}"
-        )
+        raise GitCommandError(f"Git command timed out: {' '.join(argv)}") from None
 
     output = (result.stdout + result.stderr).strip()
-    status = "succeeded" if result.returncode == 0 else "failed"
 
-    return GitResult(
-        status=status,
-        contents=f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}",
+    if result.returncode != 0:
+        raise GitCommandError(
+            f"`{' '.join(argv)}` failed (exit {result.returncode}):\n{output}"
+        )
+
+    return f"`{' '.join(argv)}` succeeded (exit 0):\n{output}"
+
+
+def working_tree_is_clean(working_directory: Optional[str] = None) -> Tuple[bool, str]:
+    """Return (True, "") if there are no uncommitted changes, else (False, porcelain status).
+
+    Used by the Task guardrail in crew.py as a second line of defence: even if the agent
+    disregards a tool-level error and declares a task finished, this checks actual repo
+    state rather than trusting the agent's account of what happened.
+    """
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=working_directory,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        stdin=subprocess.DEVNULL,
     )
+    output = result.stdout.strip()
+    return (not output, output)
 
 
 class GitAddInput(BaseModel):
@@ -67,7 +91,7 @@ class GitAddTool(BaseTool):
                 f"exact paths you want staged. Current repo state:\n{status}"
             )
         argv = ["git", "add", "--", *files]
-        return _run_git(argv, self.working_directory).contents
+        return _run_git(argv, self.working_directory)
 
 
 class GitStatusInput(BaseModel):
@@ -123,24 +147,17 @@ class GitCommitTool(BaseTool):
         flag = "-am" if all_tracked else "-m"
         argv = ["git", "commit", flag, message]
 
-        res = _run_git(argv, self.working_directory)
-
-        if res.status == "failed":
-            return f"""**PRE-COMMIT HOOKS HAVE FAILED!**
-
-            The `git commit` command returned the following error, presumably as a result of the pre-commit
-            hook failing:
-
-            {res.contents}
-
-            You **must** fix the reported errors accordingly and then retry the commit. **Do not** attempt to proceed
-            without resolving these errors as **all** subsequent attempted commits will fail and your latest changes
-            will not be synchronised with the Git repository.
-
-            To understand the tools that are run on pre-commit, consult the .pre-commit-config.yaml file in the repository root.
-            """
-
-        return res.contents
+        try:
+            return _run_git(argv, self.working_directory)
+        except GitCommandError as exc:
+            raise GitCommandError(
+                "PRE-COMMIT HOOKS HAVE FAILED! The `git commit` command failed, presumably "
+                f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{exc}\n\n"
+                "You must fix the reported errors and then retry the commit. Do not proceed "
+                "to any other step — the commit does not exist and your changes are not "
+                "synchronised with the Git repository until this succeeds. Consult "
+                ".pre-commit-config.yaml in the repository root for the checks that run."
+            ) from exc
 
 
 class GitPullRebaseInput(BaseModel):
@@ -155,7 +172,7 @@ class GitPullRebaseTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "pull", "--rebase", "origin", "main"]
-        return _run_git(argv, self.working_directory).contents
+        return _run_git(argv, self.working_directory)
 
 
 class GitPushInput(BaseModel):
@@ -170,4 +187,4 @@ class GitPushTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "push", "origin", "main"]
-        return _run_git(argv, self.working_directory).contents
+        return _run_git(argv, self.working_directory)
