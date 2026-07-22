@@ -1,11 +1,12 @@
 import re
 import subprocess
-from typing import Callable, List, Optional, Type
+from typing import Any, Callable, List, Optional, Tuple, Type
 
+from crewai.tasks.task_output import TaskOutput
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
-from pooldeals.tools.git_tools import _git_status
+from pooldeals.tools.git_tools import dirty_files, _git_status
 
 _PRE_COMMIT_BANNER_LINE = re.compile(
     r"^(\S.*\.{3,}(Passed|Failed)|- hook id:|- exit code:)"
@@ -157,3 +158,47 @@ class MypyCheckTool(BaseTool):
             timeout=120,
             output_filter=_strip_pre_commit_banner,
         )
+
+
+def require_static_analysis_passes(output: TaskOutput) -> Tuple[bool, Any]:
+    """Task guardrail: fail (and force a retry) unless every change has been committed.
+
+    This is a second line of defence alongside GitCommitTool raising GitCommandError on
+    pre-commit hook failure, and the higher max_iter/max_replans budget in crew.py: a
+    quantised local model can still exhaust its iterations, or simply decide a task is
+    "done", while ignoring reported Ruff/Mypy errors — this checks actual repo state at
+    task completion rather than trusting the agent's account of what happened.
+
+    Unlike a plain "is the tree clean" check, this runs Ruff Check and Mypy Check
+    directly against whatever Python files are still uncommitted and folds their
+    output into the retry message — so the next attempt gets the exact file:line
+    errors to fix, not just the fact that something is still dirty.
+    """
+    dirty = dirty_files(working_directory=None)
+    if not dirty:
+        return True, output
+
+    python_files = [f for f in dirty if f.endswith(".py")]
+    analysis_report = ""
+    if python_files:
+        ruff_format = _run_check(["ruff", "format", *python_files], None)
+        ruff_check = _run_check(["ruff", "check", "--fix", *python_files], None)
+        mypy_check = _run_check(
+            ["pre-commit", "run", "mypy", "--files", *python_files],
+            None,
+            timeout=120,
+            output_filter=_strip_pre_commit_banner,
+        )
+        analysis_report = (
+            "\n\nRuff and Mypy results for the uncommitted Python files:\n\n"
+            f"{ruff_format}\n\n{ruff_check}\n\n{mypy_check}"
+        )
+
+    return False, (
+        "This task is not complete: the working tree still has uncommitted changes, "
+        "which violates the source control workflow (every task must end with all "
+        "changes committed to main). Fix every error reported below by editing the "
+        "exact file:line it names, then stage and commit the remaining changes.\n\n"
+        f"Uncommitted files:\n{chr(10).join(dirty)}"
+        f"{analysis_report}"
+    )

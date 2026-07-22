@@ -4,7 +4,11 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai_tools import FileReadTool
 
-from pooldeals.tools.analysis_tools import MypyCheckTool, RuffCheckTool
+from pooldeals.tools.analysis_tools import (
+    MypyCheckTool,
+    RuffCheckTool,
+    require_static_analysis_passes,
+)
 from pooldeals.tools.git_tools import (
     GitAddTool,
     GitCommitTool,
@@ -56,13 +60,20 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 GitPushTool(),
             ],
             llm=builder_llm,
+            # CrewAI has no "unlimited" iteration setting — max_iter bounds the ReAct
+            # tool-calling loop for a single task execution (default 25), separate from
+            # PlanningConfig's max_replans/max_steps below. It was hitting that default
+            # mid fix-and-recheck loop on large multi-file tasks (e.g. the auth
+            # backend), forcing a premature "final answer" before Ruff/Mypy were clean.
+            # Raised generously rather than left at the default; still bounded so a
+            # genuinely stuck agent can't loop forever.
+            max_iter=75,
             planning=True,
             planning_config=PlanningConfig(
                 # "low" is kept for speed. Bump to "medium" only as a fallback if the
                 # agent still can't converge on Ruff/Mypy fixes once it has enough
                 # replans/steps to actually complete the fix-and-recheck loop below.
                 reasoning_effort="low",
-                max_attempts=1,
                 # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
                 # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
                 # backend) before Ruff/Mypy errors were actually resolved.
@@ -83,7 +94,11 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def get_tasks(self) -> list[Task]:
         # TODO: type properly
         return [
-            Task(config=t)
+            Task(
+                config=t,
+                guardrail=require_static_analysis_passes,
+                guardrail_max_retries=5,
+            )
             for t in self.tasks_config.values()  # type: ignore
         ]
 

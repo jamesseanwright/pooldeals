@@ -20,6 +20,31 @@ def _git_status(working_directory: Optional[str]) -> str:
     return _run_git(["git", "status", "--porcelain"], working_directory)
 
 
+def dirty_files(working_directory: Optional[str]) -> List[str]:
+    """Return the paths of every uncommitted (modified, staged, or untracked) file.
+
+    Used by the static-analysis guardrail to work out which files to run Ruff/Mypy
+    against when a task claims to be finished but hasn't actually committed everything.
+    """
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=working_directory,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        stdin=subprocess.DEVNULL,
+    )
+    files = []
+    for line in result.stdout.splitlines():
+        if not line:
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        files.append(path)
+    return files
+
+
 def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
     try:
         result = subprocess.run(
