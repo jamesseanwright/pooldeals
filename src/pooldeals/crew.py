@@ -60,14 +60,16 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 GitPushTool(),
             ],
             llm=builder_llm,
-            # CrewAI has no "unlimited" iteration setting — max_iter bounds the ReAct
-            # tool-calling loop for a single task execution (default 25), separate from
-            # PlanningConfig's max_replans/max_steps below. It was hitting that default
-            # mid fix-and-recheck loop on large multi-file tasks (e.g. the auth
-            # backend), forcing a premature "final answer" before Ruff/Mypy were clean.
-            # Raised generously rather than left at the default; still bounded so a
-            # genuinely stuck agent can't loop forever.
-            max_iter=75,
+            # max_iter bounds the ReAct tool-calling loop *within* a single task
+            # execution, separate from PlanningConfig's max_replans/max_steps below.
+            # Kept close to CrewAI's own default (25) rather than raised aggressively:
+            # the require_static_analysis_passes guardrail (with guardrail_max_retries,
+            # below and in main.py) is the more effective retry mechanism for a small
+            # quantised model — each guardrail retry restarts with a short, focused
+            # prompt containing the exact Ruff/Mypy errors, whereas a large max_iter
+            # just lets a stuck attempt keep piling turns onto an ever-growing context,
+            # which is exactly where small models degrade.
+            max_iter=30,
             planning=True,
             planning_config=PlanningConfig(
                 # "low" is kept for speed. Bump to "medium" only as a fallback if the
@@ -97,7 +99,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             Task(
                 config=t,
                 guardrail=require_static_analysis_passes,
-                guardrail_max_retries=5,
+                guardrail_max_retries=10,
             )
             for t in self.tasks_config.values()  # type: ignore
         ]
