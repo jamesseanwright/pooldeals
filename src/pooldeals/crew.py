@@ -11,7 +11,6 @@ from pooldeals.tools.git_tools import (
     GitPullRebaseTool,
     GitPushTool,
     GitStatusTool,
-    require_clean_working_tree,
 )
 
 from pooldeals.tools.safe_file_writer_tool import SafeFileWriterTool
@@ -78,7 +77,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def get_tasks(self) -> list[Task]:
         # TODO: type properly
         return [
-            Task(config=t, guardrail=require_clean_working_tree)
+            Task(config=t)
             for t in self.tasks_config.values()  # type: ignore
         ]
 

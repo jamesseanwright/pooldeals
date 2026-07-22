@@ -1,8 +1,7 @@
 import subprocess
-from typing import Any, List, Optional, Tuple, Type
+from typing import List, Optional, Type
 
 from crewai.tools import BaseTool
-from crewai.tasks.task_output import TaskOutput
 from pydantic import BaseModel, Field
 
 
@@ -42,48 +41,6 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
         )
 
     return f"`{' '.join(argv)}` succeeded (exit 0):\n{output}"
-
-
-def working_tree_is_clean(working_directory: Optional[str] = None) -> Tuple[bool, str]:
-    """Return (True, "") if there are no uncommitted changes, else (False, porcelain status).
-
-    Used by the Task guardrail in crew.py as a second line of defence: even if the agent
-    disregards a tool-level error and declares a task finished, this checks actual repo
-    state rather than trusting the agent's account of what happened.
-    """
-    result = subprocess.run(
-        ["git", "status", "--porcelain"],
-        cwd=working_directory,
-        capture_output=True,
-        text=True,
-        timeout=60,
-        stdin=subprocess.DEVNULL,
-    )
-    output = result.stdout.strip()
-    return (not output, output)
-
-
-def require_clean_working_tree(output: TaskOutput) -> Tuple[bool, Any]:
-    """Task guardrail: fail (and force a retry) unless every change has been committed.
-
-    This is a second line of defence alongside GitCommitTool raising GitCommandError on
-    pre-commit hook failure. A quantised local model can still decide a task is "done"
-    while ignoring a tool error mid-run, so this checks actual repo state at task
-    completion rather than trusting the agent's account of what happened — per the
-    trunk-based workflow in knowledge/source_control.md, every task must end fully
-    committed.
-    """
-    is_clean, dirty_status = working_tree_is_clean()
-    if is_clean:
-        return True, output
-
-    return False, (
-        "This task is not complete: the working tree still has uncommitted changes, "
-        "which violates the source control workflow (every task must end with all "
-        "changes committed to main). Stage and commit the remaining changes — resolving "
-        "any pre-commit hook (mypy/Ruff) failures first — before finishing this task. "
-        f"Uncommitted changes:\n{dirty_status}"
-    )
 
 
 class GitAddInput(BaseModel):

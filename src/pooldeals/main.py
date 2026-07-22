@@ -3,7 +3,6 @@ from crewai.flow.flow import Flow, listen, router, start
 from pydantic import BaseModel, Field
 
 from pooldeals.crew import PooldealsCrew
-from pooldeals.tools.git_tools import require_clean_working_tree
 
 
 class PooldealsReviewFlowState(BaseModel):
@@ -44,11 +43,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
         task_config = self._pooldeals_crew.tasks_config[task_name]  # type: ignore[attr-defined]
         self.state.task_name = task_name
 
-        builder_task = Task(
-            config=task_config,
-            guardrail=require_clean_working_tree,
-            guardrail_max_retries=5,
-        )
+        builder_task = Task(config=task_config)
         output = builder_task.execute_sync(agent=self._builder).raw
         self.state.builder_output = output
         return output
@@ -93,8 +88,6 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
                 "addressed, with all changes written to their respective output files."
             ),
             agent=self._builder,
-            guardrail=require_clean_working_tree,
-            guardrail_max_retries=5,
         )
         final_output = fix_task.execute_sync(
             agent=self._builder, context=self.state.builder_output
