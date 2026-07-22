@@ -107,6 +107,4 @@ class GitTool(BaseTool):
             return ["git", "pull", "--rebase", "origin", "main"]
         if command == "push":
             return ["git", "push", "origin", "main"]
-        if command == "rebase_continue":
-            return ["git", "rebase", "--continue"]
         raise ValueError(f"Unsupported command: {command}")
