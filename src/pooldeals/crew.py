@@ -80,6 +80,8 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 GitPushTool(),
             ],
             llm=builder_llm,
+            reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
         )
 
