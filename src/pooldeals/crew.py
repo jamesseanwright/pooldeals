@@ -1,10 +1,7 @@
-from typing import Any, Tuple
-
 from crewai import Agent, Crew, PlanningConfig, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
-from crewai.tasks.task_output import TaskOutput
 from crewai_tools import FileReadTool
 
 from pooldeals.tools.git_tools import (
@@ -13,7 +10,7 @@ from pooldeals.tools.git_tools import (
     GitPullRebaseTool,
     GitPushTool,
     GitStatusTool,
-    working_tree_is_clean,
+    require_clean_working_tree,
 )
 
 from pooldeals.tools.safe_file_writer_tool import SafeFileWriterTool
@@ -31,29 +28,6 @@ reviewer_llm = LLM(
     model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
 )
-
-
-def _require_clean_working_tree(output: TaskOutput) -> Tuple[bool, Any]:
-    """Task guardrail: fail (and force a retry) unless every change has been committed.
-
-    This is a second line of defence alongside GitCommitTool raising GitCommandError on
-    pre-commit hook failure. A quantised local model can still decide a task is "done"
-    while ignoring a tool error mid-run, so this checks actual repo state at task
-    completion rather than trusting the agent's account of what happened — per the
-    trunk-based workflow in knowledge/source_control.md, every task must end fully
-    committed.
-    """
-    is_clean, dirty_status = working_tree_is_clean()
-    if is_clean:
-        return True, output
-
-    return False, (
-        "This task is not complete: the working tree still has uncommitted changes, "
-        "which violates the source control workflow (every task must end with all "
-        "changes committed to main). Stage and commit the remaining changes — resolving "
-        "any pre-commit hook (mypy/Ruff) failures first — before finishing this task. "
-        f"Uncommitted changes:\n{dirty_status}"
-    )
 
 
 @CrewBase
@@ -101,7 +75,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def get_tasks(self) -> list[Task]:
         # TODO: type properly
         return [
-            Task(config=t, guardrail=_require_clean_working_tree)
+            Task(config=t, guardrail=require_clean_working_tree)
             for t in self.tasks_config.values()  # type: ignore
         ]
 

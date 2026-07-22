@@ -1,7 +1,8 @@
 import subprocess
-from typing import List, Optional, Tuple, Type
+from typing import Any, List, Optional, Tuple, Type
 
 from crewai.tools import BaseTool
+from crewai.tasks.task_output import TaskOutput
 from pydantic import BaseModel, Field
 
 
@@ -60,6 +61,29 @@ def working_tree_is_clean(working_directory: Optional[str] = None) -> Tuple[bool
     )
     output = result.stdout.strip()
     return (not output, output)
+
+
+def require_clean_working_tree(output: TaskOutput) -> Tuple[bool, Any]:
+    """Task guardrail: fail (and force a retry) unless every change has been committed.
+
+    This is a second line of defence alongside GitCommitTool raising GitCommandError on
+    pre-commit hook failure. A quantised local model can still decide a task is "done"
+    while ignoring a tool error mid-run, so this checks actual repo state at task
+    completion rather than trusting the agent's account of what happened — per the
+    trunk-based workflow in knowledge/source_control.md, every task must end fully
+    committed.
+    """
+    is_clean, dirty_status = working_tree_is_clean()
+    if is_clean:
+        return True, output
+
+    return False, (
+        "This task is not complete: the working tree still has uncommitted changes, "
+        "which violates the source control workflow (every task must end with all "
+        "changes committed to main). Stage and commit the remaining changes — resolving "
+        "any pre-commit hook (mypy/Ruff) failures first — before finishing this task. "
+        f"Uncommitted changes:\n{dirty_status}"
+    )
 
 
 class GitAddInput(BaseModel):
@@ -153,13 +177,13 @@ class GitCommitTool(BaseTool):
             raise GitCommandError(
                 "PRE-COMMIT FAILED! The `git commit` command failed, potentially "
                 f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{exc}\n\n"
-                "Assess the command output. If this is the case, you must fix the reported ",
+                "Assess the command output. If this is the case, you must fix the reported "
                 "errors and then retry the commit. Do not proceed "
                 "to any other step — the commit does not exist and your changes are not "
                 "synchronised with the Git repository until this succeeds. Consult "
                 ".pre-commit-config.yaml in the repository root for the checks that run.\n\n"
                 "If the output solely reports that no files are staged for commit then no "
-                "remediation is required, and you can proceed with the next step.",
+                "remediation is required, and you can proceed with the next step."
             ) from exc
 
 
