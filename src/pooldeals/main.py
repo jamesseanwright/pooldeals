@@ -32,8 +32,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
         self._builder = self._pooldeals_crew.builder()
         self._reviewer = self._pooldeals_crew.reviewer()
 
-    @start()
-    @listen("run_next_task")
+    @start("run_next_task")
     def run_builder_task(self) -> str:
         if not self.state.task_names:
             self.state.task_names = list(
