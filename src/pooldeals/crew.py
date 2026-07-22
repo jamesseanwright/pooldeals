@@ -1,6 +1,6 @@
 from typing import Any, Tuple
 
-from crewai import Agent, Crew, Process, Task, LLM
+from crewai import Agent, Crew, PlanningConfig, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
@@ -80,8 +80,13 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 GitPushTool(),
             ],
             llm=builder_llm,
-            reasoning=True,
-            max_reasoning_attempts=3,
+            planning=True,
+            planning_config=PlanningConfig(
+                reasoning_effort="low",
+                max_attempts=1,
+                max_replans=1,
+                max_steps=15,
+            ),
             verbose=True,
         )
 
