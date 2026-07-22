@@ -4,13 +4,13 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai_tools import FileReadTool
 
+from pooldeals.tools.analysis_tools import MypyCheckTool, RuffCheckTool
 from pooldeals.tools.git_tools import (
     GitAddTool,
     GitCommitTool,
     GitPullRebaseTool,
     GitPushTool,
     GitStatusTool,
-    PreCommitCheckTool,
     require_clean_working_tree,
 )
 
@@ -50,7 +50,8 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 SafeFileWriterTool(),
                 GitStatusTool(),
                 GitAddTool(),
-                PreCommitCheckTool(),
+                RuffCheckTool(),
+                MypyCheckTool(),
                 GitCommitTool(),
                 GitPullRebaseTool(),
                 GitPushTool(),
