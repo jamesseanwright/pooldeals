@@ -5,6 +5,10 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
+def _git_status(working_directory: Optional[str]) -> str:
+    return _run_git(["git", "status", "--porcelain"], working_directory)
+
+
 def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
     try:
         result = subprocess.run(
@@ -28,7 +32,13 @@ class GitAddInput(BaseModel):
 
     files: List[str] = Field(
         ...,
-        description="File paths to stage with 'git add'. Required, must be non-empty.",
+        min_length=1,
+        description=(
+            "File paths to stage with 'git add'. Required. Must contain at least "
+            "one file path — NEVER pass an empty list. If you are not certain "
+            "which files changed, call Git Status first and pass the exact paths "
+            "it reports."
+        ),
     )
 
 
@@ -40,9 +50,31 @@ class GitAddTool(BaseTool):
 
     def _run(self, files: List[str]) -> str:
         if not files:
-            raise ValueError("'files' must be a non-empty list.")
+            status = _git_status(self.working_directory)
+            raise ValueError(
+                "'files' must be a non-empty list. Call Git Status and pass the "
+                f"exact paths you want staged. Current repo state:\n{status}"
+            )
         argv = ["git", "add", "--", *files]
         return _run_git(argv, self.working_directory)
+
+
+class GitStatusInput(BaseModel):
+    """Input schema for GitStatusTool. Takes no arguments."""
+
+
+class GitStatusTool(BaseTool):
+    name: str = "Git Status"
+    description: str = (
+        "Check which files have changed using 'git status --porcelain'. Use this "
+        "before Git Add whenever you are not certain which files were modified, "
+        "created, or deleted, so you can pass exact paths instead of guessing."
+    )
+    args_schema: Type[BaseModel] = GitStatusInput
+    working_directory: Optional[str] = None
+
+    def _run(self) -> str:
+        return _git_status(self.working_directory)
 
 
 class GitCommitInput(BaseModel):

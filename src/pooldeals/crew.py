@@ -8,6 +8,7 @@ from pooldeals.tools.git_tools import (
     GitCommitTool,
     GitPullRebaseTool,
     GitPushTool,
+    GitStatusTool,
 )
 
 from pooldeals.tools.safe_file_writer_tool import SafeFileWriterTool
@@ -43,6 +44,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[
                 SafeFileWriterTool(),
+                GitStatusTool(),
                 GitAddTool(),
                 GitCommitTool(),
                 GitPullRebaseTool(),
