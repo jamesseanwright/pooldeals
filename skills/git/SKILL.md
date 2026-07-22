@@ -37,7 +37,7 @@ Always rebase onto the latest trunk before pushing, so history stays linear and 
 git pull --rebase origin main
 ```
 
-The Git tool does not support continuing a rebase. If conflicts arise, stop and report the failure rather than attempting to resolve and continue the rebase yourself.
+The Git pull tool does not support continuing a rebase. If conflicts arise, stop and report the failure rather than attempting to resolve and continue the rebase yourself.
 
 ## 4. Push — `git push`
 

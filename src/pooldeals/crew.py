@@ -4,7 +4,12 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai_tools import FileWriterTool
 
-from pooldeals.tools.git_tool import GitTool
+from pooldeals.tools.git_tools import (
+    GitAddTool,
+    GitCommitTool,
+    GitPullRebaseTool,
+    GitPushTool,
+)
 
 builder_llm = LLM(
     base_url="http://localhost:8080/v1",
@@ -35,7 +40,13 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     def builder(self) -> Agent:
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
-            tools=[FileWriterTool(), GitTool()],
+            tools=[
+                FileWriterTool(),
+                GitAddTool(),
+                GitCommitTool(),
+                GitPullRebaseTool(),
+                GitPushTool(),
+            ],
             llm=builder_llm,
             verbose=True,
         )
