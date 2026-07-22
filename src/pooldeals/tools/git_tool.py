@@ -70,6 +70,7 @@ class GitTool(BaseTool):
         message: Optional[str] = None,
         all_tracked: bool = False,
     ) -> str:
+        self._validate_argument_combination(command, files, message, all_tracked)
         argv = self._build_argv(command, files, message, all_tracked)
         try:
             result = subprocess.run(
@@ -88,6 +89,23 @@ class GitTool(BaseTool):
         return f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
 
     @staticmethod
+    def _validate_argument_combination(
+        command: GitCommand,
+        files: Optional[List[str]],
+        message: Optional[str],
+        all_tracked: bool,
+    ) -> None:
+        """Reject any command/argument permutation other than the strictly
+        allowed ones: files only with 'add', message/all_tracked only with
+        'commit'. Guards against agent mistakes like `push` with a message."""
+        if command != "add" and files:
+            raise ValueError("'files' is only allowed with the 'add' command.")
+        if command != "commit" and (message is not None or all_tracked):
+            raise ValueError(
+                "'message' and 'all_tracked' are only allowed with the 'commit' command."
+            )
+
+    @staticmethod
     def _build_argv(
         command: GitCommand,
         files: Optional[List[str]],
@@ -95,12 +113,9 @@ class GitTool(BaseTool):
         all_tracked: bool,
     ) -> List[str]:
         if command == "add":
-            if not files:
-                raise ValueError("'files' is required for the 'add' command.")
-            return ["git", "add", "--", *files]
+            return ["git", "add", "--", *(files or [])]
         if command == "commit":
-            if not message:
-                raise ValueError("'message' is required for the 'commit' command.")
+            assert message is not None, "GitToolInput requires 'message' for 'commit'."
             flag = "-am" if all_tracked else "-m"
             return ["git", "commit", flag, message]
         if command == "pull_rebase":
