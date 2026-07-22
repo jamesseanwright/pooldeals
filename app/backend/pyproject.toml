@@ -1,17 +1,42 @@
 [project]
 name = "pooldeals-backend"
 version = "0.1.0"
-description = "PoolDeals backend service"
-authors = [
-    {name = "PoolDeals Team"},
-]
+description = "PoolDeals backend API"
 dependencies = [
-    "fastapi[standard]>=0.104.0",
+    "fastapi>=0.110.0,<1.0.0",
+    "uvicorn>=0.29.0,<1.0.0",
 ]
+requires-python = ">=3.11"
 
 [project.scripts]
 fastapi = "fastapi.cli:main"
 
 [build-system]
-requires = ["uv>=0.1.16"]
-build-backend = "uv"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # mccabe
+    "B",  # flake8-bugbear
+    "A",  # flake8-builtins
+    "UP", # pyupgrade
+]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true

@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+app: FastAPI = FastAPI()
 
 
 @app.get("/")
-async def root():
+async def read_root() -> dict[str, str]:
     return {"message": "Hello, World!"}
