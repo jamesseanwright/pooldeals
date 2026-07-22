@@ -73,5 +73,6 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 )
             ],
             skills=["./skills"],
+            checkpoint=True,  # TODO: resume from latest checkpoint on flow start (or even just accept checkpoint name as command-line arg)
             verbose=True,
         )
