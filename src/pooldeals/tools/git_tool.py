@@ -6,9 +6,8 @@ from pydantic import BaseModel, Field, model_validator
 
 # Commands supported by this project's trunk-based Git workflow, as documented
 # in skills/git/SKILL.md. Kept intentionally narrow: no branching, no force
-# operations, nothing that could rewrite or discard history other than a
-# conflict-resolution rebase continue.
-GitCommand = Literal["add", "commit", "pull_rebase", "push", "rebase_continue"]
+# operations, nothing that could rewrite or discard history.
+GitCommand = Literal["add", "commit", "pull_rebase", "push"]
 
 
 class GitToolInput(BaseModel):
@@ -19,8 +18,7 @@ class GitToolInput(BaseModel):
         description=(
             "Git operation to run: 'add' to stage files, 'commit' to commit staged "
             "(or all tracked, with all_tracked=True) changes, 'pull_rebase' to sync "
-            "with origin/main via rebase, 'push' to push to origin main, or "
-            "'rebase_continue' to continue a rebase after resolving conflicts."
+            "with origin/main via rebase, or 'push' to push to origin main."
         ),
     )
     files: Optional[List[str]] = Field(
@@ -58,7 +56,7 @@ class GitTool(BaseTool):
         "Stage, commit, sync, and push changes using Git, following this project's "
         "trunk-based workflow (no branches, no force-push, no history rewriting). "
         "Supports only: add, commit, pull_rebase (git pull --rebase origin main), "
-        "push (git push origin main), and rebase_continue (git rebase --continue)."
+        "and push (git push origin main)."
     )
     args_schema: Type[BaseModel] = GitToolInput
     working_directory: Optional[str] = None

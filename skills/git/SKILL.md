@@ -37,7 +37,7 @@ Always rebase onto the latest trunk before pushing, so history stays linear and 
 git pull --rebase origin main
 ```
 
-Resolve any conflicts that arise, re-run the test suite and linter, then continue with `git rebase --continue` before proceeding to push.
+The Git tool does not support continuing a rebase. If conflicts arise, stop and report the failure rather than attempting to resolve and continue the rebase yourself.
 
 ## 4. Push — `git push`
 
@@ -47,7 +47,26 @@ Push your rebased commits directly to the trunk:
 git push origin main
 ```
 
-Never force-push (`--force` / `--force-with-lease`) to `main`. If the push is rejected because the trunk has moved, repeat step 3 (`git pull --rebase`) and push again.
+**Never** force-push (`--force` / `--force-with-lease`) to `main`. If the push is rejected because the trunk has moved, repeat step 3 (`git pull --rebase`) and push again.
+
+## Allowed argument combinations
+
+The Git tool enforces a strict, narrow set of command/argument permutations. Any other combination is rejected before it runs:
+
+| Command       | `files`        | `message`      | `all_tracked`  |
+| ------------- | -------------- | -------------- | -------------- |
+| `add`         | ✅ required    | ❌ not allowed | ❌ not allowed |
+| `commit`      | ❌ not allowed | ✅ required    | optional       |
+| `pull_rebase` | ❌ not allowed | ❌ not allowed | ❌ not allowed |
+| `push`        | ❌ not allowed | ❌ not allowed | ❌ not allowed |
+
+In particular:
+
+- `files` may only be passed with `add`.
+- `message` and `all_tracked` may only be passed with `commit`.
+- `pull_rebase` and `push` take no arguments at all — never pass a message, files, or `all_tracked` alongside them (e.g. `push` with a commit message is invalid).
+
+There is no fallback or best-effort handling: a disallowed permutation raises an error instead of running.
 
 ## Typical sequence
 
