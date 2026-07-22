@@ -2,7 +2,6 @@ from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
-from crewai_tools import FileWriterTool
 
 from pooldeals.tools.git_tools import (
     GitAddTool,
@@ -10,6 +9,8 @@ from pooldeals.tools.git_tools import (
     GitPullRebaseTool,
     GitPushTool,
 )
+
+from pooldeals.tools.safe_file_writer_tool import safe_file_writer
 
 builder_llm = LLM(
     base_url="http://localhost:8080/v1",
@@ -41,7 +42,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
         return Agent(
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[
-                FileWriterTool(),
+                safe_file_writer,
                 GitAddTool(),
                 GitCommitTool(),
                 GitPullRebaseTool(),
