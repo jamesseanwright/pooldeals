@@ -7,9 +7,11 @@ metadata:
 
 Before every commit, you **must** verify your changes with these tools — this is not optional. They report exact `file:line` errors so you can fix real issues instead of guessing, and neither of them commits anything.
 
+**Both tools only understand Python.** Only ever pass `.py` files to Ruff Check or Mypy Check — never a Dockerfile, YAML, TypeScript, Markdown, or any other non-Python file. Both tools reject any call that includes a non-`.py` path, even if the rest of the files in that call are Python. If your task touched non-Python files too (e.g. a Dockerfile alongside a `.py` change), just omit those paths — there is no equivalent check for them.
+
 ## 1. Check for lint/formatting errors — Ruff Check
 
-Run Ruff Check against the exact files you changed:
+Run Ruff Check against the exact `.py` files you changed:
 
 ```
 ruff format <file> [<file> ...]
@@ -18,11 +20,11 @@ ruff check --fix <file> [<file> ...]
 
 Read the output. For each `file:line` error it reports, open that exact file and fix only that issue. Call Ruff Check again. Repeat until it reports no errors.
 
-`files` is required and must never be an empty list. If you are not certain which files changed, call Git Status first (see the `git` skill) and pass the exact paths it reports.
+`files` is required, must never be an empty list, and every path must end in `.py`. If you are not certain which files changed, call Git Status first (see the `git` skill) and pass the exact `.py` paths it reports.
 
 ## 2. Check for type errors — Mypy Check
 
-Once Ruff Check is clean, run Mypy Check against the same files. mypy isn't a standalone project dependency — it runs inside pre-commit's isolated hook environment, so it's invoked through `pre-commit run` rather than as a bare binary:
+Once Ruff Check is clean, run Mypy Check against the same `.py` files. mypy isn't a standalone project dependency — it runs inside pre-commit's isolated hook environment, so it's invoked through `pre-commit run` rather than as a bare binary:
 
 ```
 pre-commit run mypy --files <file> [<file> ...]
@@ -30,7 +32,7 @@ pre-commit run mypy --files <file> [<file> ...]
 
 Read the output. For each `file:line` error it reports, open that exact file and fix only that issue. Call Mypy Check again. Repeat until it reports no errors.
 
-`files` is required and must never be an empty list, for the same reason as Ruff Check.
+`files` is required, must never be an empty list, and every path must end in `.py` — for the same reasons as Ruff Check.
 
 ## Only then commit
 
@@ -43,7 +45,7 @@ Read the output. For each `file:line` error it reports, open that exact file and
 | `ruff_check` | ✅ required, non-empty |
 | `mypy_check` | ✅ required, non-empty |
 
-`files` must contain at least one path — never `[]`. If you are unsure what changed, call Git Status first and pass the exact paths it reports.
+`files` must contain at least one path — never `[]` — and every path must be a `.py` file; a call with even one non-Python path is rejected outright. If you are unsure what changed, call Git Status first and pass the exact `.py` paths it reports.
 
 ## Typical sequence
 
