@@ -24,6 +24,10 @@ builder_llm = LLM(
     custom_openai=True,
     model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
+    # Left unset, llama_server falls back to its own default sampling (temp ~0.8),
+    # which favours exploratory, meandering generation. Lower temperature biases
+    # the quantised model towards more decisive, convergent tool-calling behaviour.
+    temperature=0.2,
 )
 
 reviewer_llm = LLM(
@@ -31,6 +35,7 @@ reviewer_llm = LLM(
     custom_openai=True,
     model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
+    temperature=0.2,
 )
 
 
@@ -72,12 +77,21 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             max_iter=30,
             planning=True,
             planning_config=PlanningConfig(
-                reasoning_effort="medium",
+                # Was "medium": the guardrail (require_static_analysis_passes, with
+                # guardrail_max_retries below) is the mechanism that actually
+                # converges a small quantised model, by feeding back exact Ruff/Mypy
+                # errors. The upfront planner was adding a second, independent layer
+                # of step-by-step deliberation on top of that reactive loop, which
+                # this model tends to take very literally rather than compress.
+                reasoning_effort="low",
                 # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
                 # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
                 # backend) before Ruff/Mypy errors were actually resolved.
                 max_replans=3,
-                max_steps=30,
+                # Was 30: capping the plan at a handful of coarse steps keeps the
+                # builder oriented on the task's shape rather than pre-enumerating
+                # every file/tool-call, which it then re-narrates step-by-step.
+                max_steps=8,
             ),
             verbose=True,
         )
