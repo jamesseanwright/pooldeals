@@ -131,6 +131,7 @@ class VoucherRepository:
   - Static analysis of the source with `mypy` should yield no errors.
 - **Pydantic v2 Standards:** Use `.model_dump()` instead of `.dict()`, and `.model_validate()` instead of `.from_orm()`.
 - **Dependency Injection:** Utilize FastAPI's `Depends` for passing configuration, database sessions, and cross-context services.
+- **Real Implementation:** Unless doing so within the test-driven development (TDD) paradigm, do **not** include stub implementation functions in final production code. Do **not** treat your work as a pure proof-of-concept, but a robust product with real behaviours and end-to-end functionality that will serve real users.
 
 ## 4. Tooling
 
