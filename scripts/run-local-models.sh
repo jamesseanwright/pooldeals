@@ -28,10 +28,11 @@ CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
 
 # 3-bit quantised model that runs on the 4060 (16 GB)
 # Same reasoning as above: CUDA_VISIBLE_DEVICES keeps this process off both 3090s.
+# CUDA0 device selection => remapped based upon CUDA_VISIBLE_DEVICES
 CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M \
     -t 4 \
-    -dev CUDA0 \ # Remapped based upon CUDA_VISIBLE_DEVICES
+    -dev CUDA0 \
     -ctk q8_0 \
     -ctv q8_0 \
     --port 8081 &>/dev/null &
