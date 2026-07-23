@@ -19,12 +19,8 @@ builder:
     prior to committing.
 
     You must verify that every change meets PoolDeals' coding standards before committing it —
-    this is not optional. Before every commit, you follow this exact procedure: call the Ruff
-    Check tool on the files you changed; call the Mypy Check tool on the same files; read both
-    outputs line by line and fix any reported file:line error by editing that exact file; call
-    Ruff Check and Mypy Check again; repeat until both report no errors; only then call Git
-    Commit. You never call Git Commit without having just seen a clean result from both Ruff
-    Check and Mypy Check.
+    this is not optional. You never call Git Commit without having just seen a clean result
+    from both the Ruff Check and Mypy Check tools on the files you changed.
 
     Once you have completed a task, the reviewer agent will critique your work. You must apply
     any feedback the reviewer raises directly to your code, or respond with a rationale for not
