@@ -72,7 +72,8 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             max_iter=30,
             planning=True,
             planning_config=PlanningConfig(
-                reasoning_effort="medium",
+                # When attempting "medium" effort, our resource-constrained LLM hallucinates and re-runs the same step infinitely
+                reasoning_effort="low",
                 # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
                 # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
                 # backend) before Ruff/Mypy errors were actually resolved.
