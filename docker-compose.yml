@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: app/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DEBUG=${DEBUG:-true}
+      - SECRET_KEY=${SECRET_KEY}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    volumes:
+      - ./app/backend:/app/app/backend
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - pooldeals-network
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=pooldeals
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=pooldeals_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - pooldeals-network
+
+networks:
+  pooldeals-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
