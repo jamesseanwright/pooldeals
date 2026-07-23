@@ -3,7 +3,7 @@
 builder_devices=0,1
 reviewer_devices=2
 
-# 5-bit quantised model that run across both 3090s
+# 3-bit quantised, 80B MoE model that run across both 3090s
 # A split ratio of '0.5,0.5' forces the KV cache and layers
 # to span evenly across both logical IDs.
 #
@@ -14,7 +14,7 @@ reviewer_devices=2
 # opening a small context on every device the process can see. Scoping
 # CUDA_VISIBLE_DEVICES is what actually keeps this process off the 4060 Ti.
 CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
-    -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_S \
+    -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_M \
     -t 4 \
     -dev CUDA0,CUDA1 \
     -ngl 48 \
