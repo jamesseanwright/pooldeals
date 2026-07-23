@@ -1,11 +1,11 @@
 ---
 name: git
-description: Stage, commit, sync, and push changes using Git for this project's trunk-based workflow. Use whenever a task's implementation is ready to be saved to source control.
+description: Stage, commit, sync, and push changes using Git for this project's trunk-based workflow, including Conventional Commits message rules and the TDD/review workflow. Use whenever a task's implementation is ready to be saved to source control.
 metadata:
   version: "1.0"
 ---
 
-This project uses a simple, trunk-based Git workflow: no feature branches, no pull requests. Every task is captured in one or more small commits pushed straight to `main`. This skill covers the small set of commands needed to do that. For commit message conventions, see the `source_control` knowledge base doc.
+This project uses a simple, trunk-based Git workflow: no feature branches, no pull requests. There are no long-lived feature branches — all work is committed straight to `main` in small, frequent, atomic commits. This skill covers everything needed to do that: the commands, commit message conventions, and the TDD/review workflow.
 
 ## 1. Check what changed — `git status`
 
@@ -43,7 +43,29 @@ git commit -am "<type>(<scope>): <description>"
 
 - Use `-a` to automatically stage modifications to already-tracked files (it will not pick up new, untracked files — use `git add` for those first).
 - Use `-m` to supply the Conventional Commits message directly on the command line.
-- Keep each commit atomic: one logical change per commit.
+- Keep each commit atomic: bundle only related changes into a single commit — prefer several small commits over one large one.
+
+### Commit message format
+
+Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification: `<type>(<optional scope>): <description>`, written in a clear, imperative tone (e.g., `feat: add retry logic to API client`, `fix(api): handle null response from pricing service`).
+
+Use one of the types from [`@commitlint/config-conventional`](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional):
+
+- `feat` — a new feature
+- `fix` — a bug fix
+- `docs` — documentation-only changes
+- `style` — changes that don't affect code meaning (formatting, whitespace, etc.)
+- `refactor` — a code change that neither fixes a bug nor adds a feature
+- `perf` — a code change that improves performance
+- `test` — adding or correcting tests
+- `build` — changes to the build system or external dependencies
+- `ci` — changes to CI configuration or scripts
+- `chore` — other changes that don't modify source or test files
+- `revert` — reverts a previous commit
+
+Note breaking changes with a `!` after the type/scope (e.g., `feat!: drop support for legacy pricing API`) or a `BREAKING CHANGE:` footer.
+
+**Keep Trunk Healthy:** because there is no branch isolation, every commit to `main` must leave the codebase in a working state — never commit code that fails tests or linting.
 
 **Note:** this repository is configured to run pre-commit checks, which can be found in the [.pre-commit-config.yaml](../../.pre-commit-config.yaml) file in the repository root. If you skipped step 3 or committed before Ruff Check and Mypy Check both reported a clean result, these checks will run again here and may still fail — resolve the errors as described in the output before you can proceed with the next step of the task. If you attempt to proceed without resolving these errors, then **all** subsequent attempted commits will fail your latest changes will not be synchronised with the Git repository.
 
@@ -66,6 +88,25 @@ git push origin main
 ```
 
 **Never** force-push (`--force` / `--force-with-lease`) to `main`. If the push is rejected because the trunk has moved, repeat step 5 (`git pull --rebase`) and push again.
+
+## Test-Driven Development Workflow
+
+For each task:
+
+1. Write a test case upfront that captures the desired behavior — see the `testing` skill.
+2. Implement the code required to satisfy that test.
+3. Run the full local test suite and linter to confirm nothing is broken — see the `static-analysis` skill.
+4. Commit the change with a clear, atomic commit message (see above).
+
+## Review Workflow
+
+There is no GitHub pull request process. Instead, review happens agent-to-agent, directly on the working code:
+
+1. **Initial Output:** The builder agent completes a task (implementation plus tests) and commits it.
+2. **Critique:** The reviewer agent inspects the builder's changes and produces feedback — noting any issues with coding standards, test coverage, security, performance, or adherence to the task definition.
+3. **Apply Feedback:** The builder agent applies the reviewer's feedback directly to the working tree, or responds with a rationale if it disagrees with a specific point.
+4. **Re-validation:** After applying feedback, the builder re-runs the test suite and linter before committing the follow-up changes.
+5. **Completion:** Once the reviewer has no further feedback, the task is considered complete. No merge step is required since work already lives on `main`.
 
 ## Allowed argument combinations
 

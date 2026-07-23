@@ -1,6 +1,11 @@
-# Automated Testing Guide
+---
+name: testing
+description: Technical blueprint and verification checklist for automated tests across the frontend React app (RTL/Vitest/MSW) and backend Python services (pytest/Testcontainers). Use whenever writing tests, or before committing code that needs test coverage.
+metadata:
+  version: "1.0"
+---
 
-This document provides a technical blueprint for writing and running automated tests across our frontend React applications and backend Python services. Use these standards to maintain consistent, reliable, and deterministic test suites.
+Use these standards to maintain consistent, reliable, and deterministic test suites.
 
 ## Frontend Integration Tests (React)
 
@@ -15,7 +20,7 @@ Our frontend testing strategy focuses on user-centric integration testing. We av
 ### Key Practices
 
 - **Query by Accessibility:** Always prefer `screen.getByRole` or `screen.findByRole` to ensure your HTML remains accessible.
-  - If in doubt, follow the [official priority](https://testing-library.com/docs/queries/about/#priority) outlined in the Testing Library documentation
+  - If in doubt, follow the [official priority](https://testing-library.com/docs/queries/about/#priority) outlined in the Testing Library documentation.
 - **User Events:** Use `@testing-library/user-event` instead of `fireEvent` to simulate realistic browser interactions.
 - **Network Mocking:** Intercept API requests at the network layer using MSW. Never mock internal data-fetching hooks directly.
 
@@ -68,8 +73,6 @@ test('displays user profile and handles name update updates successfully', async
   expect(nameInput).toHaveValue('Alex Jones');
 });
 ```
-
----
 
 ## Backend Integration Tests (Python & FastAPI)
 
@@ -162,8 +165,6 @@ def test_create_and_read_item(client):
     assert read_response.status_code == status.HTTP_200_OK
     assert read_response.json()["description"] == payload["description"]
 ```
-
----
 
 ## Agent Verification Checklist
 

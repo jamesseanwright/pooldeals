@@ -1,12 +1,15 @@
-# Security Best Practices for Autonomous Engineering Agents
-
-This document outlines mandatory security protocols for this full-stack application. Autonomous agents must strictly adhere to these guidelines when modifying or writing code for the TypeScript/React frontend and Python/FastAPI backend.
-
 ---
+name: security
+description: Mandatory security protocols for the TypeScript/React frontend and Python/FastAPI backend — auth (JWT), injection defense, access control, CORS/headers, secrets, and logging. Use whenever writing, modifying, or reviewing code that touches auth, user input, external calls, secrets, or logging.
+metadata:
+  version: "1.0"
+---
+
+Autonomous agents must strictly adhere to these guidelines when modifying or writing code for the TypeScript/React frontend and Python/FastAPI backend.
 
 ## 1. Authentication Mechanism
 
-PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT mechanism, to authenticate users against the backend endpoints.
+PoolDeals uses the OAuth 2 standard, specifically the stateless JWT mechanism, to authenticate users against the backend endpoints.
 
 ## 2. Input Validation and Injection Defense
 
@@ -20,9 +23,7 @@ PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT
 ### Frontend (TypeScript & React)
 
 - **XSS Prevention:** Avoid `dangerouslySetInnerHTML`. If necessary, sanitize data first using `dompurify`.
-- **Safe Contexts:** Ensure URL attributes (e.g., `<a href=...`>) are validated to prevent `javascript:` execution.
-
----
+- **Safe Contexts:** Ensure URL attributes (e.g., `<a href=...>`) are validated to prevent `javascript:` execution.
 
 ## 3. Authentication, Authorization, and Enumeration
 
@@ -41,8 +42,6 @@ PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT
 
 - **Broken Object Level Authorization (BOLA):** Verify that the authenticated user explicitly owns the resource ID they are requesting (typically using the `sub` claim). Do not rely solely on the presence of a valid JWT.
 
----
-
 ## 4. API Security and Cross-Origin Protocols
 
 ### Transport and Headers
@@ -58,8 +57,6 @@ PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT
 - **Mass Assignment:** Do not dump raw request payload dicts directly into database models. Explicitly map Pydantic fields to ORM fields.
 - **Data Minimization:** Use Pydantic `response_model` configurations to exclude sensitive fields (like password hashes) from API outputs.
 
----
-
 ## 5. Dependencies and Secrets Management
 
 ### Secret Handling
@@ -71,8 +68,6 @@ PoolDeals will make use of the OAuth 2 standard, in particular the stateless JWT
 
 - **Backend:** Lock versions with `uv.lock`. Run `uv audit` to check for CVEs.
 - **Frontend:** Lock versions with `pnpm-lock.yaml`. Run `pnpm audit` to check for CVEs.
-
----
 
 ## 6. Logging and Error Handling
 

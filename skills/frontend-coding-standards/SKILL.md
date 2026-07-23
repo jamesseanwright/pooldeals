@@ -1,6 +1,11 @@
-# Frontend Coding Standards: React & TypeScript (AI Agent Guide)
+---
+name: frontend-coding-standards
+description: Mandatory frontend coding standards for React & TypeScript — strict typing rules, component/hook conventions, pnpm tooling, and the .ts/.tsx/app/frontend file constraints. Use whenever writing, modifying, or reviewing frontend code.
+metadata:
+  version: "1.0"
+---
 
-This document defines the mandatory frontend coding standards for this project. All autonomous AI agents must strictly adhere to these rules when generating, refactoring, or reviewing code.
+All frontend code generation, refactoring, or review must strictly adhere to these rules.
 
 ## 1. Environment & Architecture Core
 
@@ -82,7 +87,7 @@ For components that render their parent's children, support a `children` propert
 
 - **Use pnpm for package management.** Do **not** use vanilla npm or Yarn.
 
-# 6. Additional Constraints
+## 6. File Placement Constraints
 
-- **Frontend TypeScript/React code must only be written to files with the `.ts` extension, or `.tsx` when the code contains JSX syntax.** Do **not** write any other languages to these files (e.g. Python)
-- **Frontend TypeScript/React code must only be written to the `app/frontend` directory.** Do **not** write frontend code to any other directory (e.g. `app/backend`)
+- **Frontend TypeScript/React code must only be written to files with the `.ts` extension, or `.tsx` when the code contains JSX syntax.** Do **not** write any other languages to these files (e.g. Python).
+- **Frontend TypeScript/React code must only be written to the `app/frontend` directory.** Do **not** write frontend code to any other directory (e.g. `app/backend`).

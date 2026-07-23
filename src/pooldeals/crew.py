@@ -116,11 +116,6 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                     file_paths=[
                         "product.md",
                         "general.md",
-                        "backend_coding_standards.md",
-                        "frontend_coding_standards.md",
-                        "security.md",
-                        "source_control.md",
-                        "testing.md",
                     ],
                 )
             ],

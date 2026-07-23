@@ -1,14 +1,15 @@
-# Python FastAPI Backend Coding Standards
-
-This document defines the architectural and coding standards for building scalable, maintainable, and robust microservices using FastAPI.
-
 ---
+name: backend-coding-standards
+description: Architectural and coding standards for building the Python/FastAPI backend — bounded-context layering, async/typing rules, uv/Ruff tooling, and the .py/app/backend file constraints. Use whenever writing, modifying, or reviewing backend Python code.
+metadata:
+  version: "1.0"
+---
+
+This project's FastAPI backend must be built as scalable, maintainable, robust microservices. Follow these standards for every backend change.
 
 ## 1. Architectural Pattern: Layered Bounded Contexts
 
-The application must be split into top-level packages representing **Bounded Contexts** (e.g., `vouchers`, `users`, `auth` etc.).
-
-Each context acts as an independent module. Cross-context communication must happen exclusively through public service interfaces, never by querying another context's database tables directly.
+Split the application into top-level packages representing **Bounded Contexts** (e.g., `vouchers`, `users`, `auth`). Each context is an independent module. Cross-context communication must happen exclusively through public service interfaces — never by querying another context's database tables directly.
 
 ```
 src/
@@ -28,8 +29,6 @@ src/
         ├── services.py
         └── ...
 ```
-
----
 
 ## 2. Layer Responsibilities
 
@@ -122,13 +121,10 @@ class VoucherRepository:
         return db_item
 ```
 
----
-
 ## 3. General Implementation Rules
 
 - **Asynchronous Execution:** Use async/await definitions for all route handlers, service methods, and repository calls (`async def`).
-- **Type Hinting:** Enforce strict type hinting on all function signatures, variables, and return values.
-  - Static analysis of the source with `mypy` should yield no errors.
+- **Type Hinting:** Enforce strict type hinting on all function signatures, variables, and return values. Static analysis with `mypy` should yield no errors — see the `static-analysis` skill.
 - **Pydantic v2 Standards:** Use `.model_dump()` instead of `.dict()`, and `.model_validate()` instead of `.from_orm()`.
 - **Dependency Injection:** Utilize FastAPI's `Depends` for passing configuration, database sessions, and cross-context services.
 - **Real Implementation:** Unless doing so within the test-driven development (TDD) paradigm, do **not** include stub implementation functions in final production code. Do **not** treat your work as a pure proof-of-concept, but a robust product with real behaviours and end-to-end functionality that will serve real users.
@@ -136,9 +132,9 @@ class VoucherRepository:
 ## 4. Tooling
 
 - **Use uv for package management.** Do **not** use pip or Poetry.
-- **Use Ruff for code formatting and linting**
+- **Use Ruff for code formatting and linting** — see the `static-analysis` skill.
 
-# 5. Additional Constraints
+## 5. File Placement Constraints
 
-- **Python code must only be written to files with the `.py` extension.** Do **not** write any other languages to these files (e.g. TypeScript)
-- **Backend Python code must only be written to the `app/backend` directory.** Do **not** write backend Python code to any other directory (e.g. `app/frontend`)
+- **Python code must only be written to files with the `.py` extension.** Do **not** write any other languages to these files (e.g. TypeScript).
+- **Backend Python code must only be written to the `app/backend` directory.** Do **not** write backend Python code to any other directory (e.g. `app/frontend`).
