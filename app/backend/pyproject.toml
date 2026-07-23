@@ -1,42 +1,46 @@
-[project]
+[tool.poetry]
 name = "pooldeals-backend"
 version = "0.1.0"
-description = "PoolDeals backend API"
-dependencies = [
-    "fastapi>=0.110.0,<1.0.0",
-    "uvicorn>=0.29.0,<1.0.0",
-]
-requires-python = ">=3.11"
+description = "Backend API for PoolDeals"
+authors = ["PoolDeals Team"]
 
-[project.scripts]
-fastapi = "fastapi.cli:main"
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = "^0.32.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8.4"
+mypy = "^1.13.0"
+pytest = "^8.3.3"
 
 [build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.4.0",
-    "mypy>=1.8.0",
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.21.0",
-]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "C",  # mccabe
-    "B",  # flake8-bugbear
-    "A",  # flake8-builtins
-    "UP", # pyupgrade
-]
 line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+ignore_missing_imports = true
