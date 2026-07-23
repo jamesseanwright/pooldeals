@@ -1,4 +1,4 @@
-from crewai import Agent, Crew, PlanningConfig, Process, Task, LLM
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
@@ -70,16 +70,17 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             # just lets a stuck attempt keep piling turns onto an ever-growing context,
             # which is exactly where small models degrade.
             max_iter=30,
-            planning=True,
-            planning_config=PlanningConfig(
-                # When attempting "medium" effort, our resource-constrained LLM hallucinates and re-runs the same step infinitely
-                reasoning_effort="low",
-                # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
-                # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
-                # backend) before Ruff/Mypy errors were actually resolved.
-                max_replans=3,
-                max_steps=30,
-            ),
+            # Currently disabled planning as even with low, it seems to get stuck in a loop on the first step
+            # planning=True,
+            # planning_config=PlanningConfig(
+            #     # When attempting "medium" effort, our resource-constrained LLM hallucinates and re-runs the same step infinitely
+            #     reasoning_effort="low",
+            #     # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
+            #     # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
+            #     # backend) before Ruff/Mypy errors were actually resolved.
+            #     max_replans=3,
+            #     max_steps=30,
+            # ),
             verbose=True,
         )
 
