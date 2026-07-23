@@ -72,10 +72,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             max_iter=30,
             planning=True,
             planning_config=PlanningConfig(
-                # "low" is kept for speed. Bump to "medium" only as a fallback if the
-                # agent still can't converge on Ruff/Mypy fixes once it has enough
-                # replans/steps to actually complete the fix-and-recheck loop below.
-                reasoning_effort="low",
+                reasoning_effort="medium",
                 # Was 1: CrewAI force-finalizes the task once max_replans is hit, even
                 # mid-fix-loop, which cut off large multi-file tasks (e.g. the auth
                 # backend) before Ruff/Mypy errors were actually resolved.
