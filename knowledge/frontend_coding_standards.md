@@ -46,7 +46,7 @@ Use Zod for validating any input payloads or response bodies returned by the bac
 - **Functional Components:** Use arrow functions with explicit return types for all components.
 - **File Structure:** One component per file. Name the file using PascalCase (e.g., `Button.tsx`).
 - **Destructured Props:** Destructure component props directly in the function signature.
-- **No `React.FC`:** Do not use `React.FC` or `React.FunctionComponent`. Type props directly:
+- **No `React.FC`:** Do **not** use `React.FC` or `React.FunctionComponent`. Type props directly:
 
   ```typescript
   interface ButtonProps {
@@ -81,3 +81,8 @@ For components that render their parent's children, support a `children` propert
 ## 5. Tooling
 
 - **Use pnpm for package management.** Do **not** use vanilla npm or Yarn.
+
+# 6. Additional Constraints
+
+- **Frontend TypeScript/React code must only be written to files with the `.ts` extension, or `.tsx` when the code contains JSX syntax.** Do **not** write any other languages to these files (e.g. Python)
+- **Frontend TypeScript/React code must only be written to the `app/frontend` directory.** Do **not** write frontend code to any other directory (e.g. `app/backend`)

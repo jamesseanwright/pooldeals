@@ -136,3 +136,8 @@ class VoucherRepository:
 
 - **Use uv for package management.** Do **not** use pip or Poetry.
 - **Use Ruff for code formatting and linting**
+
+# 5. Additional Constraints
+
+- **Python code must only be written to files with the `.py` extension.** Do **not** write any other languages to these files (e.g. TypeScript)
+- **Backend Python code must only be written to the `app/backend` directory.** Do **not** write backend Python code to any other directory (e.g. `app/frontend`)
