@@ -34,7 +34,7 @@ def dirty_files(working_directory: Optional[str]) -> List[str]:
     return files
 
 
-def _run_git(argv: List[str], working_directory: Optional[str]) -> Tuple[bool, str]:
+def _run_git(argv: List[str], working_directory: Optional[str]) -> Tuple[int, str]:
     """Run a git subprocess, always returning a result rather than raising.
 
     Earlier this raised `GitCommandError` on non-zero exit or timeout, on the
@@ -60,7 +60,16 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> Tuple[bool, s
     output = (result.stdout + result.stderr).strip()
     success = result.returncode == 0
     status = "succeeded" if success else "failed"
-    return success, f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
+    return (
+        result.returncode,
+        f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}",
+    )
+
+
+def _commit_output_contains_ignored_git_nonzero_exit_reason(output: str) -> bool:
+    return (
+        "nothing to commit, working tree clean" in output
+    )  # Currently the only ignored exit reason
 
 
 class GitAddInput(BaseModel):
@@ -92,7 +101,19 @@ class GitAddTool(BaseTool):
                 f"the exact paths you want staged. Current repo state:\n{status}"
             )
         argv = ["git", "add", "--", *files]
-        return _run_git(argv, self.working_directory)[1]
+
+        exit_code, output = _run_git(argv, self.working_directory)
+
+        if exit_code == 128:
+            return (
+                "Error: `git add` exited with a 128 exit code; this is most likely caused "
+                "by trying to add/stage a file that does not exist. Make sure that each of the "
+                "files you've provided actually exist, and correct the paths accordingly. It's "
+                "possible that the file you're trying to add exists under a different path or filename.\n\n"
+                f"Command output:\n\n{output}"
+            )
+
+        return output
 
 
 class GitStatusInput(BaseModel):
@@ -156,18 +177,19 @@ class GitCommitTool(BaseTool):
         flag = "-am" if all_tracked else "-m"
         argv = ["git", "commit", flag, message]
 
-        success, output = _run_git(argv, self.working_directory)
-        if not success:
+        exit_code, output = _run_git(argv, self.working_directory)
+        if (
+            exit_code != 0
+            and not _commit_output_contains_ignored_git_nonzero_exit_reason(output)
+        ):
             return (
-                "PRE-COMMIT FAILED! The `git commit` command failed, potentially "
+                "Error: the `git commit` command failed! This is most likely "
                 f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{output}\n\n"
-                "Assess the command output. If this is the case, you must fix the reported "
+                "Assess the command output. If there is an error to resolve, you must fix the reported "
                 "errors and then retry the commit. Do not proceed "
                 "to any other step — the commit does not exist and your changes are not "
                 "synchronised with the Git repository until this succeeds. Consult "
-                ".pre-commit-config.yaml in the repository root for the checks that run.\n\n"
-                "If the output solely reports that no files are staged for commit then no "
-                "remediation is required, and you can proceed with the next step."
+                ".pre-commit-config.yaml in the repository root for the checks that run."
             )
         return output
 
