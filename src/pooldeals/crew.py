@@ -106,7 +106,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             Task(
                 config=t,
                 guardrail=require_static_analysis_passes,
-                guardrail_max_retries=10,
+                guardrail_max_retries=5,
             )
             for t in self.tasks_config.values()  # type: ignore
         ]

@@ -47,7 +47,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
         builder_task = Task(
             config=task_config,
             guardrail=require_static_analysis_passes,
-            guardrail_max_retries=10,
+            guardrail_max_retries=5,
         )
         output = builder_task.execute_sync(agent=self._builder).raw
         self.state.builder_output = output
@@ -94,7 +94,7 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
             ),
             agent=self._builder,
             guardrail=require_static_analysis_passes,
-            guardrail_max_retries=10,
+            guardrail_max_retries=5,
         )
         final_output = fix_task.execute_sync(
             agent=self._builder, context=self.state.builder_output

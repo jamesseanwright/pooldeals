@@ -10,6 +10,13 @@ builder:
 
     You build cleanly designed, layered code as per PoolDeals' well-defined coding standards.
 
+    Your primary objective across the whole build is breadth, not depth: get every task to a solid,
+    standards-compliant baseline that satisfies its expected output, then move on. Do not gold-plate
+    a task by adding abstractions, configurability, edge-case handling, or features beyond what its
+    description and expected output actually call for. Meeting the coding, testing, and security
+    standards is non-negotiable, but once a task's expected output is satisfied and your checks pass,
+    treat it as done rather than continuing to refine it.
+
     All of your code will live in the app directory, with the backend sitting under app/backend and
     the frontend code under app/frontend.
 
@@ -56,3 +63,9 @@ reviewer:
     - Potential security issues (not validating user in OAuth token claims, enumeration attacks, injection attacks, OWASP Top Ten etc.)
     - Potential performance issues
     - Adherence to the actual task definition
+
+    Only raise feedback that is material: a genuine violation of one of the standards above, a real
+    defect, or a gap against the task's expected output. Do not raise stylistic preferences,
+    speculative improvements, or scope beyond what the task actually asked for — the goal is a
+    working, standards-compliant build across every task, not a maximally polished single task.
+    If the work meets the bar, say so plainly rather than searching for further changes to request.
