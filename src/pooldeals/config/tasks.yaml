@@ -20,8 +20,8 @@ fastapi_bootstrap_task:
 
 docker_compose_bootstrap_task:
   description: >
-    Produce a local Docker Compose setup for the PoolDeals backend that can also serve
-    as the basis for a production deployment.
+    Produce a local Docker Compose setup for the PoolDeals backend that can be used to
+    run the backend locally.
 
     Write a multi-stage `Dockerfile` under `app/backend` that builds the uv-managed
     FastAPI project from `fastapi_bootstrap_task` into a slim runtime image, running the
@@ -37,6 +37,10 @@ docker_compose_bootstrap_task:
     depends on. Wire the backend's database connection settings via a `.env.example`
     file (committed) documenting the required environment variables; do not commit an
     actual `.env` file.
+
+    On the Docker Compose stack, focus exclusively on the local developer experience.
+    We will not use Compose to run the service in production, so don't build a production
+    Compose stack; we're solely using Compose as a local DX enhancement.
   expected_output: >
     An `app/backend/Dockerfile` implementing a multi-stage build that produces a slim
     production-ready image for the FastAPI application, configured entirely via
