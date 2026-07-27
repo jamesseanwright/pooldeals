@@ -28,13 +28,14 @@ def _strip_pre_commit_banner(output: str) -> str:
     return "\n".join(lines).strip()
 
 
-def _reject_non_python_files(files: List[str]) -> None:
+def _reject_non_python_files(files: List[str]) -> Optional[str]:
     non_python = [f for f in files if not f.endswith(".py")]
     if non_python:
-        raise ValueError(
-            "This tool only checks Python files. Remove these non-Python paths and "
-            f"call it again with just the .py files you changed: {non_python}"
+        return (
+            "Error: this tool only checks Python files. Remove these non-Python "
+            f"paths and call it again with just the .py files you changed: {non_python}"
         )
+    return None
 
 
 def _run_check(
@@ -101,11 +102,13 @@ class RuffCheckTool(BaseTool):
     def _run(self, files: List[str]) -> str:
         if not files:
             status = _git_status(self.working_directory)
-            raise ValueError(
-                "'files' must be a non-empty list. Call Git Status and pass the "
-                f"exact paths you want checked. Current repo state:\n{status}"
+            return (
+                "Error: 'files' must be a non-empty list. Call Git Status and pass "
+                f"the exact paths you want checked. Current repo state:\n{status}"
             )
-        _reject_non_python_files(files)
+        rejection = _reject_non_python_files(files)
+        if rejection is not None:
+            return rejection
         format_result = _run_check(["ruff", "format", *files], self.working_directory)
         check_result = _run_check(
             ["ruff", "check", "--fix", *files], self.working_directory
@@ -144,11 +147,13 @@ class MypyCheckTool(BaseTool):
     def _run(self, files: List[str]) -> str:
         if not files:
             status = _git_status(self.working_directory)
-            raise ValueError(
-                "'files' must be a non-empty list. Call Git Status and pass the "
-                f"exact paths you want checked. Current repo state:\n{status}"
+            return (
+                "Error: 'files' must be a non-empty list. Call Git Status and pass "
+                f"the exact paths you want checked. Current repo state:\n{status}"
             )
-        _reject_non_python_files(files)
+        rejection = _reject_non_python_files(files)
+        if rejection is not None:
+            return rejection
         # mypy is not a bare project dependency — it only exists inside pre-commit's
         # isolated hook environment (see .pre-commit-config.yaml), so it must be invoked
         # through pre-commit rather than as a standalone binary.
@@ -163,8 +168,8 @@ class MypyCheckTool(BaseTool):
 def require_static_analysis_passes(output: TaskOutput) -> Tuple[bool, Any]:
     """Task guardrail: fail (and force a retry) unless every change has been committed.
 
-    This is a second line of defence alongside GitCommitTool raising GitCommandError on
-    pre-commit hook failure, and the higher max_iter/max_replans budget in crew.py: a
+    This is a second line of defence alongside GitCommitTool's own "PRE-COMMIT FAILED!"
+    result on pre-commit hook failure, and the guardrail_max_retries budget in crew.py: a
     quantised local model can still exhaust its iterations, or simply decide a task is
     "done", while ignoring reported Ruff/Mypy errors — this checks actual repo state at
     task completion rather than trusting the agent's account of what happened.

@@ -1,23 +1,12 @@
 import subprocess
-from typing import List, Optional, Type
+from typing import List, Optional, Tuple, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
-class GitCommandError(RuntimeError):
-    """Raised when a git subprocess exits non-zero or times out.
-
-    Letting this propagate out of a tool's `_run` (rather than returning an error string)
-    is deliberate: CrewAI's tool executor catches it, feeds the message back to the agent
-    as a distinct tool-error observation, and automatically retries the step — this lands
-    with a small quantised model far more reliably than a "success" string containing
-    error text ever does.
-    """
-
-
 def _git_status(working_directory: Optional[str]) -> str:
-    return _run_git(["git", "status", "--porcelain"], working_directory)
+    return _run_git(["git", "status", "--porcelain"], working_directory)[1]
 
 
 def dirty_files(working_directory: Optional[str]) -> List[str]:
@@ -45,7 +34,17 @@ def dirty_files(working_directory: Optional[str]) -> List[str]:
     return files
 
 
-def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
+def _run_git(argv: List[str], working_directory: Optional[str]) -> Tuple[bool, str]:
+    """Run a git subprocess, always returning a result rather than raising.
+
+    Earlier this raised `GitCommandError` on non-zero exit or timeout, on the
+    assumption that CrewAI's tool executor would catch it and retry the current step.
+    In practice, exceptions raised from a tool's `_run` propagate past the step-level
+    handling to the agent's own execute_task retry logic, which restarts the whole
+    task from scratch — a fresh plan included — rather than just retrying the step.
+    Returning a normal pass/fail observation (mirroring analysis_tools._run_check)
+    lets the agent react and retry in place instead.
+    """
     try:
         result = subprocess.run(
             argv,
@@ -56,16 +55,12 @@ def _run_git(argv: List[str], working_directory: Optional[str]) -> str:
             stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired:
-        raise GitCommandError(f"Git command timed out: {' '.join(argv)}") from None
+        return False, f"`{' '.join(argv)}` timed out after 60s."
 
     output = (result.stdout + result.stderr).strip()
-
-    if result.returncode != 0:
-        raise GitCommandError(
-            f"`{' '.join(argv)}` failed (exit {result.returncode}):\n{output}"
-        )
-
-    return f"`{' '.join(argv)}` succeeded (exit 0):\n{output}"
+    success = result.returncode == 0
+    status = "succeeded" if success else "failed"
+    return success, f"`{' '.join(argv)}` {status} (exit {result.returncode}):\n{output}"
 
 
 class GitAddInput(BaseModel):
@@ -92,12 +87,12 @@ class GitAddTool(BaseTool):
     def _run(self, files: List[str]) -> str:
         if not files:
             status = _git_status(self.working_directory)
-            raise ValueError(
-                "'files' must be a non-empty list. Call Git Status and pass the "
-                f"exact paths you want staged. Current repo state:\n{status}"
+            return (
+                "Error: 'files' must be a non-empty list. Call Git Status and pass "
+                f"the exact paths you want staged. Current repo state:\n{status}"
             )
         argv = ["git", "add", "--", *files]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory)[1]
 
 
 class GitStatusInput(BaseModel):
@@ -157,16 +152,15 @@ class GitCommitTool(BaseTool):
 
     def _run(self, message: str, all_tracked: bool = False) -> str:
         if not message:
-            raise ValueError("'message' must be a non-empty string.")
+            return "Error: 'message' must be a non-empty string."
         flag = "-am" if all_tracked else "-m"
         argv = ["git", "commit", flag, message]
 
-        try:
-            return _run_git(argv, self.working_directory)
-        except GitCommandError as exc:
-            raise GitCommandError(
+        success, output = _run_git(argv, self.working_directory)
+        if not success:
+            return (
                 "PRE-COMMIT FAILED! The `git commit` command failed, potentially "
-                f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{exc}\n\n"
+                f"because a pre-commit hook (mypy/Ruff) rejected the change:\n\n{output}\n\n"
                 "Assess the command output. If this is the case, you must fix the reported "
                 "errors and then retry the commit. Do not proceed "
                 "to any other step — the commit does not exist and your changes are not "
@@ -174,7 +168,8 @@ class GitCommitTool(BaseTool):
                 ".pre-commit-config.yaml in the repository root for the checks that run.\n\n"
                 "If the output solely reports that no files are staged for commit then no "
                 "remediation is required, and you can proceed with the next step."
-            ) from exc
+            )
+        return output
 
 
 class GitPullRebaseInput(BaseModel):
@@ -189,7 +184,7 @@ class GitPullRebaseTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "pull", "--rebase", "origin", "main"]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory)[1]
 
 
 class GitPushInput(BaseModel):
@@ -204,4 +199,4 @@ class GitPushTool(BaseTool):
 
     def _run(self) -> str:
         argv = ["git", "push", "origin", "main"]
-        return _run_git(argv, self.working_directory)
+        return _run_git(argv, self.working_directory)[1]
