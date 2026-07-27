@@ -16,6 +16,10 @@ build-backend = "hatchling.build"
 [tool.crewai]
 type = "crew"
 
+[tool.mypy]
+explicit_package_bases = true
+mypy_path = "."
+
 [dependency-groups]
 dev = [
     "crewai[tools]==1.15.5",
