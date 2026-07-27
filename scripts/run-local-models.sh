@@ -19,11 +19,13 @@ CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
     -dev CUDA0,CUDA1 \
     -ngl 48 \
     -ts 0.5,0.5 \
-    -c 280000 \
+    -c 262144 \
     -ctk q8_0 \
     -ctv q8_0 \
     -fa 1 \
     -n 4096 \
+    --temp 1.0 \
+    --min-p 0.01 \
     --port 8080 &>/dev/null &
 
 # 3-bit quantised model that runs on the 4060 (16 GB)
@@ -35,4 +37,6 @@ CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -dev CUDA0 \
     -ctk q8_0 \
     -ctv q8_0 \
+    --temp 1.0 \
+    --min-p 0.01 \
     --port 8081 &>/dev/null &

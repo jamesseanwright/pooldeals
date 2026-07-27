@@ -24,10 +24,6 @@ builder_llm = LLM(
     custom_openai=True,
     model="not-needed",  # model controlled by llama_server (see scripts/run-local-models.sh)
     api_key="not-needed",  # not required as running model locally via llama_server OpenAI-compat API
-    # Left unset, llama_server falls back to its own default sampling (temp ~0.8),
-    # which favours exploratory, meandering generation. Lower temperature biases
-    # the quantised model towards more decisive, convergent tool-calling behaviour.
-    temperature=0.2,
 )
 
 reviewer_llm = LLM(
