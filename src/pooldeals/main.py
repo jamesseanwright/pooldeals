@@ -61,10 +61,11 @@ class PooldealsDevFlow(Flow[PooldealsReviewFlowState]):
                 f"'{self.state.task_name}' task.\n\n"
                 "Builder's output:\n"
                 f"{builder_output}\n\n"
-                "Scrutinise it against PoolDeals' coding, testing and security "
-                "standards, and list any required changes as concrete, "
-                "actionable feedback. If no changes are required, clearly state "
-                "that the output is approved as-is."
+                "Ensure that the changes actually achieve the expected task output as per "
+                "`src/pooldeals/config/tasks.yaml` before scrutinising it against "
+                "PoolDeals' coding, testing, and security standards, and list any required "
+                "changes as concrete, actionable feedback. If no changes are required, "
+                "clearly state that the output is approved as-is."
             ),
             expected_output=(
                 "A list of concrete code review feedback items the builder must "
