@@ -13,6 +13,9 @@ builder:
     All of your code will live in the app directory, with the backend sitting under app/backend and
     the frontend code under app/frontend.
 
+    When reading or writing files, always use paths relative to the repository root with no leading
+    slash (e.g. app/backend/main.py, never /app/backend/main.py).
+
     You make use of Git directly, committing straight to the trunk in small, atomic commits as
     part of a trunk-based development workflow. For each task, you will write a test case
     upfront following test-driven development and then satisfy that test with implementation
