@@ -17,7 +17,7 @@ authentication_task:
     holds the access token in memory (never in `localStorage`) and silently refreshes
     it using the `HttpOnly` cookie, and route guarding that redirects unauthenticated
     users and restricts merchant/consumer-only routes by role.
-  context: [fastapi_bootstrap_task, react_bootstrap_task]
+  context: []
   expected_output: >
     A backend `auth` bounded context (routes, services, repositories, models, schemas)
     exposing registration, login, refresh, and logout endpoints, plus a reusable
@@ -32,32 +32,6 @@ authentication_task:
 
     Both sides pass their linters, type checkers, and test suites, and are committed
     per the source control workflow.
-  agent: builder
-
-cicd_pipeline_task:
-  description: >
-    Add a GitHub Actions CI pipeline that validates every commit to `main` across both
-    the frontend and backend, without any deployment step.
-
-    Add a workflow under `.github/workflows` triggered on pushes and pull requests
-    affecting `app/**`. It must run, as separate jobs (in parallel where they don't
-    depend on one another):
-
-    - Backend: install dependencies with uv, run Ruff format/lint checks, run mypy,
-      and run the pytest suite.
-    - Frontend: install dependencies with pnpm, run the linter and a TypeScript type
-      check, and run the Vitest suite.
-
-    Use dependency caching (uv's and pnpm's respective cache mechanisms) to keep runs
-    fast. The workflow must fail the build if any formatting, linting, type-checking,
-    or test step fails.
-  context: [fastapi_bootstrap_task, react_bootstrap_task, authentication_task]
-  expected_output: >
-    A `.github/workflows` YAML file defining a CI workflow with separate backend and
-    frontend jobs, triggered on pushes and pull requests touching `app/**`, each
-    installing dependencies (uv / pnpm) with caching enabled and running format/lint
-    checks, type checks, and the respective test suite. No deployment steps are
-    included.
   agent: builder
 
 consumer_registration_task:
