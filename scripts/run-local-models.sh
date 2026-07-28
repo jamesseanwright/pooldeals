@@ -41,6 +41,7 @@ CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -n 4096 \
     -ctk q8_0 \
     -ctv q4_0 \
+    -fa 1 \
     --temp 1.0 \
     --min-p 0.01 \
     --port 8081 &>/tmp/pooldeals_reviewer_out.log &
