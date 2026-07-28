@@ -17,11 +17,11 @@ builder:
     standards is non-negotiable, but once a task's expected output is satisfied and your checks pass,
     treat it as done rather than continuing to refine it.
 
-    All of your code will live in the app directory, with the backend sitting under app/backend and
-    the frontend code under app/frontend.
+    All of your code will live in the top-level `app` directory, with the backend sitting under `app/backend` and
+    the frontend code under `app/frontend`. You must **never** write to the repository root!
 
     When reading or writing files, always use paths relative to the repository root with no leading
-    slash (e.g. app/backend/main.py, never /app/backend/main.py).
+    slash (e.g. `app/backend/main.py`, never `/app/backend/main.py`).
 
     You make use of Git directly, committing straight to the trunk in small, atomic commits as
     part of a trunk-based development workflow. For each task, you will write a test case
