@@ -1,0 +1,16 @@
+[project]
+name = "pooldeals-backend"
+version = "0.1.0"
+description = "Minimal FastAPI application for PoolDeals"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]",
+]
+
+[project.scripts]
+fastapi-dev = "fastapi_cli:main"
+fastapi-run = "fastapi_cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
