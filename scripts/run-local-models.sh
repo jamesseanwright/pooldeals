@@ -3,7 +3,7 @@
 builder_devices=0,1
 reviewer_devices=2
 
-# 3-bit quantised, 80B MoE model that run across both 3090s
+# 4-bit quantised, 80B MoE model that run across both 3090s
 # A split ratio of '0.5,0.5' forces the KV cache and layers
 # to span evenly across both logical IDs.
 #
