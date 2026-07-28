@@ -7,8 +7,9 @@ reviewer_devices=2
 # A split ratio of '0.5,0.5' forces the KV cache and layers
 # to span evenly across both logical IDs.
 #
-# Context keys and values are 8-bit quantised namely to allow llama-server
-# to allocate KV cache on first builder GPU before applying the tensor split.
+# Context keys and values are asymmetrically quantised to 8-bit and 4-bit
+# respectively, as code retrieval degrades massively at 4-bit but the
+# referenced values do not, allowing us to free up a tad more VRAM for context.
 #
 # -dev only steers layer/KV placement; it doesn't stop ggml-cuda from
 # opening a small context on every device the process can see. Scoping
@@ -21,9 +22,9 @@ CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
     -ts 0.5,0.5 \
     --parallel 1 \
     -c 65536 \
-    -n 8192 \
+    -n 4096 \
     -ctk q8_0 \
-    -ctv q8_0 \
+    -ctv q4_0 \
     -fa 1 \
     --temp 1.0 \
     --min-p 0.01 \
@@ -37,9 +38,9 @@ CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -t 4 \
     -dev CUDA0 \
     --parallel 1 \
-    -n 8192 \
+    -n 4096 \
     -ctk q8_0 \
-    -ctv q8_0 \
+    -ctv q4_0 \
     --temp 1.0 \
     --min-p 0.01 \
     --port 8081 &>/tmp/pooldeals_reviewer_out.log &
