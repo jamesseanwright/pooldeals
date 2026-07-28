@@ -2,7 +2,7 @@ from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
-from crewai_tools import FileReadTool, FileWriterTool
+from crewai_tools import FileReadTool
 
 from pooldeals.tools.analysis_tools import (
     MypyCheckTool,
@@ -16,6 +16,7 @@ from pooldeals.tools.git_tools import (
     GitPushTool,
     GitStatusTool,
 )
+from pooldeals.tools.safe_file_writer_tool import SafeFileWriterTool
 
 builder_llm = LLM(
     base_url="http://localhost:8080/v1",
@@ -49,7 +50,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             config=self.agents_config["builder"],  # type: ignore[index]
             tools=[
                 FileReadTool(),
-                FileWriterTool(),
+                SafeFileWriterTool(),
                 GitStatusTool(),
                 GitAddTool(),
                 RuffCheckTool(),
