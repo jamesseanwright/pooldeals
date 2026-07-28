@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+  pull_request:
+    paths:
+      - 'app/**'
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: pipx install uv
+
+      - name: Cache backend dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/uv
+          key: ${{ runner.os }}-backend-${{ hashFiles('app/backend/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-
+
+      - name: Install backend dependencies
+        working-directory: app/backend
+        run: uv sync --frozen --no-install-project
+
+      - name: Run Ruff format check
+        working-directory: app/backend
+        run: uv run ruff format --check .
+
+      - name: Run Ruff lint check
+        working-directory: app/backend
+        run: uv run ruff check .
+
+      - name: Run mypy type check
+        working-directory: app/backend
+        run: uv run mypy .
+
+      - name: Run pytest
+        working-directory: app/backend
+        run: uv run pytest
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Cache frontend dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/frontend/node_modules
+            ~/.pnpm-store
+          key: ${{ runner.os }}-frontend-${{ hashFiles('app/frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+
+      - name: Install frontend dependencies
+        working-directory: app/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend linter
+        working-directory: app/frontend
+        run: pnpm lint
+
+      - name: Run TypeScript type check
+        working-directory: app/frontend
+        run: pnpm check
+
+      - name: Run Vitest
+        working-directory: app/frontend
+        run: pnpm test:coverage
