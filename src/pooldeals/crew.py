@@ -59,7 +59,7 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
                 GitPushTool(),
             ],
             llm=builder_llm,
-            max_iter=30,
+            max_iter=75,
             verbose=True,
         )
 
