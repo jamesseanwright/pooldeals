@@ -79,30 +79,6 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
     # binding logic; we thus define them with the `@task` decorator to
     # bake them into the aforementioned binding stage.
     @task
-    def fastapi_bootstrap_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["fastapi_bootstrap_task"],  # type: ignore[index]
-            guardrail=require_static_analysis_passes,
-            guardrail_max_retries=5,
-        )
-
-    @task
-    def docker_compose_bootstrap_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["docker_compose_bootstrap_task"],  # type: ignore[index]
-            guardrail=require_static_analysis_passes,
-            guardrail_max_retries=5,
-        )
-
-    @task
-    def react_bootstrap_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["react_bootstrap_task"],  # type: ignore[index]
-            guardrail=require_static_analysis_passes,
-            guardrail_max_retries=5,
-        )
-
-    @task
     def authentication_task(self) -> Task:
         return Task(
             config=self.tasks_config["authentication_task"],  # type: ignore[index]
