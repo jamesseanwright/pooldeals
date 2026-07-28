@@ -1,5 +1,5 @@
 from crewai import Agent, Crew, Process, Task, LLM
-from crewai.project import CrewBase, agent, crew
+from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.knowledge.source.text_file_knowledge_source import TextFileKnowledgeSource
 from crewai_tools import FileReadTool
@@ -72,23 +72,114 @@ class PooldealsCrew:  # TODO: => PoolDealsCrew
             verbose=True,
         )
 
-    def get_tasks(self) -> list[Task]:
-        # TODO: type properly
-        return [
-            Task(
-                config=t,
-                guardrail=require_static_analysis_passes,
-                guardrail_max_retries=5,
-            )
-            for t in self.tasks_config.values()  # type: ignore
-        ]
+    # Hand-defining a task for each task in tasks.yaml is a bit
+    # smelly, but our previous approach of building them
+    # dynamically doesn't respect the `context` list we provide since
+    # the method we implemented was called after Crew's internal task
+    # binding logic; we thus define them with the `@task` decorator to
+    # bake them into the aforementioned binding stage.
+    @task
+    def fastapi_bootstrap_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["fastapi_bootstrap_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def docker_compose_bootstrap_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["docker_compose_bootstrap_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def react_bootstrap_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["react_bootstrap_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def authentication_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["authentication_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def cicd_pipeline_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["cicd_pipeline_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def consumer_registration_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["consumer_registration_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def merchant_onboarding_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["merchant_onboarding_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def campaign_management_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["campaign_management_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def deal_discovery_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["deal_discovery_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def voucher_claiming_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["voucher_claiming_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def voucher_redemption_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["voucher_redemption_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
+
+    @task
+    def merchant_analytics_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["merchant_analytics_task"],  # type: ignore[index]
+            guardrail=require_static_analysis_passes,
+            guardrail_max_retries=5,
+        )
 
     @crew
     def crew(self) -> Crew:
         """Creates the Pooldeals crew"""
         return Crew(
             agents=self.agents,
-            tasks=self.get_tasks(),
+            tasks=self.tasks,
             process=Process.sequential,
             knowledge_sources=[
                 TextFileKnowledgeSource(

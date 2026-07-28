@@ -8,6 +8,7 @@ fastapi_bootstrap_task:
 
     Ignore all other product context and coding standards for this task; the goal
     is purely to verify that the application can be bootstrapped and run.
+  context: []
   expected_output: >
     A runnable FastAPI application in `app/backend` consisting of a uv-managed project
     (pyproject.toml and lockfile) with FastAPI and the fastapi CLI installed, and a
@@ -41,6 +42,7 @@ docker_compose_bootstrap_task:
     On the Docker Compose stack, focus exclusively on the local developer experience.
     We will not use Compose to run the service in production, so don't build a production
     Compose stack; we're solely using Compose as a local DX enhancement.
+  context: [fastapi_bootstrap_task]
   expected_output: >
     An `app/backend/Dockerfile` implementing a multi-stage build that produces a slim
     production-ready image for the FastAPI application, configured entirely via
@@ -68,6 +70,7 @@ react_bootstrap_task:
     Ignore all other product context and coding standards for this task beyond the
     TypeScript strictness and pnpm tooling requirements; the goal is purely to verify
     that the application can be bootstrapped and run.
+  context: []
   expected_output: >
     A runnable React application in `app/frontend` consisting of a pnpm-managed project
     (package.json and lockfile) using TypeScript with `strict: true`, and a root
@@ -96,6 +99,7 @@ authentication_task:
     holds the access token in memory (never in `localStorage`) and silently refreshes
     it using the `HttpOnly` cookie, and route guarding that redirects unauthenticated
     users and restricts merchant/consumer-only routes by role.
+  context: [fastapi_bootstrap_task, react_bootstrap_task]
   expected_output: >
     A backend `auth` bounded context (routes, services, repositories, models, schemas)
     exposing registration, login, refresh, and logout endpoints, plus a reusable
@@ -129,6 +133,7 @@ cicd_pipeline_task:
     Use dependency caching (uv's and pnpm's respective cache mechanisms) to keep runs
     fast. The workflow must fail the build if any formatting, linting, type-checking,
     or test step fails.
+  context: [fastapi_bootstrap_task, react_bootstrap_task, authentication_task]
   expected_output: >
     A `.github/workflows` YAML file defining a CI workflow with separate backend and
     frontend jobs, triggered on pushes and pull requests touching `app/**`, each
@@ -152,6 +157,7 @@ consumer_registration_task:
     On the frontend, add a registration form collecting name, email, password, and
     postcode, validating the postcode format client-side with Zod ahead of submission,
     and surfacing the backend's validation error if the postcode is out of area.
+  context: [authentication_task]
   expected_output: >
     A backend consumer registration endpoint that persists a Consumer profile only when
     the supplied postcode matches a valid Blackpool district (FY1-FY8), rejecting others
@@ -175,6 +181,7 @@ merchant_onboarding_task:
     On the frontend, add a merchant onboarding form collecting the profile fields
     and a simple dashboard landing page showing the merchant's profile and
     verification status.
+  context: [authentication_task]
   expected_output: >
     A backend `merchants` bounded context exposing endpoints to create and fetch a
     merchant profile, defaulting new merchants to unverified, covered by integration
@@ -199,6 +206,7 @@ campaign_management_task:
     On the frontend, add a single-page campaign creation form (title, discount type,
     inventory cap, validity window) achievable in under five steps, a list of the
     merchant's campaigns, and a pause/resume control per campaign.
+  context: [authentication_task, merchant_onboarding_task]
   expected_output: >
     A backend `campaigns` bounded context exposing create/list/update/pause/resume
     endpoints, enforcing that only the owning merchant can manage a campaign and that
@@ -220,6 +228,7 @@ deal_discovery_task:
 
     On the frontend, add a discovery feed page listing active deals with category
     filtering, designed to load within two seconds under normal conditions.
+  context: [campaign_management_task]
   expected_output: >
     A backend endpoint returning only active, non-expired, in-stock campaigns,
     filterable by category, covered by integration tests asserting expired, paused, and
@@ -244,6 +253,7 @@ voucher_claiming_task:
     On the frontend, add a "claim" action on deal cards in the discovery feed and a
     "my vouchers" view listing the consumer's claimed vouchers with their codes and
     expiration dates, disabling further claims once the 3-active limit is reached.
+  context: [campaign_management_task, deal_discovery_task, authentication_task]
   expected_output: >
     A backend claim endpoint that atomically decrements campaign supply, generates a
     unique voucher code with an immutable expiry, and enforces the 3-active-voucher
@@ -270,6 +280,7 @@ voucher_redemption_task:
     submitted for redemption, showing a clear success or rejection result. Also render
     each consumer voucher as a scannable QR code (encoding the voucher's unique code)
     alongside its alphanumeric string in the "my vouchers" view.
+  context: [voucher_claiming_task, merchant_onboarding_task]
   expected_output: >
     A backend redemption endpoint that transitions a Claimed voucher to Redeemed only
     for its owning merchant, rejecting expired or already-redeemed vouchers with
@@ -292,6 +303,7 @@ merchant_analytics_task:
 
     On the frontend, add a simple analytics view on the merchant dashboard showing
     issued-versus-redeemed counts per campaign.
+  context: [campaign_management_task, voucher_claiming_task, voucher_redemption_task]
   expected_output: >
     A backend analytics endpoint returning accurate, near-real-time issued and
     redeemed counts per campaign, restricted to the owning merchant, covered by
