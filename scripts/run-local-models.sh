@@ -14,19 +14,19 @@ reviewer_devices=2
 # opening a small context on every device the process can see. Scoping
 # CUDA_VISIBLE_DEVICES is what actually keeps this process off the 4060 Ti.
 CUDA_VISIBLE_DEVICES=$builder_devices llama-server \
-    -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_M \
+    -hf unsloth/Qwen3-Coder-Next-GGUF:UD-IQ4_XS \
     -t 4 \
     -dev CUDA0,CUDA1 \
     -ngl 48 \
     -ts 0.5,0.5 \
-    -c 262144 \
+    -c 65536 \
     -ctk q8_0 \
     -ctv q8_0 \
     -fa 1 \
-    -n 4096 \
+    -n 8192 \
     --temp 1.0 \
     --min-p 0.01 \
-    --port 8080 &>/dev/null &
+    --port 8080 &>/tmp/pooldeals_builder_out.log &
 
 # 3-bit quantised model that runs on the 4060 (16 GB)
 # Same reasoning as above: CUDA_VISIBLE_DEVICES keeps this process off both 3090s.
@@ -35,8 +35,9 @@ CUDA_VISIBLE_DEVICES=$reviewer_devices llama-server \
     -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q3_K_M \
     -t 4 \
     -dev CUDA0 \
+    -n 8192 \
     -ctk q8_0 \
     -ctv q8_0 \
     --temp 1.0 \
     --min-p 0.01 \
-    --port 8081 &>/dev/null &
+    --port 8081 &>/tmp/pooldeals_reviewer_out.log &
